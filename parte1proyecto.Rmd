@@ -1,0 +1,227 @@
+---
+title: "Statistical models for COVID-19 deaths forecasting and explanation"
+author: "Arturo Prieto Tirado"
+date: "29/4/2021"
+output: html_document
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+## Introduction
+
+The COVID-19 pandemic was first noticed in December 2019 and since then has propagated all around the world, leading all countries into trouble in both sanitary and economic ways. The evolution and propagation of the virus has been different all around the world since the countries themselves are different and so are the measures taken. The vaccination against the virus has already started but the pandemic has not finished yet and new variants of the virus might arise. Being able to predict when the peaks of the wave will happen accurately could be very useful knowledge against the virus. Furthermore, statistical models that could explain the drivers and quantify the effects of the different factors and countries' characteristics contributing to the expansion of the virus and deaths would be crucial to analyze whether the strategies taken by the different governments in the world have been useful and scientifically identify good choices to take in future waves of this virus or future pandemics that humanity might face. The present work aims to develop statistical models for explaining the main causes leading COVID-19 deaths and analyze its predictive accuracy, although an analysis based on Machine Learning models will later be done to focus on maximum predictive accuracy.
+
+## Dataset description
+
+The dataset was taken from:  
+
+First thing is that in order to account for the seasonality of these events, one needs to work with lag variables. This is why the "smoothed" (7 day average) variables have been used instead of the daily ones. Furthermore, since this analysis includes different countries, it is important to normalize the data taking into account the total population of the country. Finally, the dataset contained many 
+
+Since accounting for individual countries would not generalize well and generate noise, it has been chosen to work only with continents, with together with the month, can also serve as an indication of the season of the year. However, many countries have been erased to avoid micro-countries as well as full continents. The full list of countries selected for this project (even if country variable is not used) is:
+
+Another variable, is island, was added to account for the fact that islands have it easier to close borders and protect themselves from the virus.
+
+The selected variables thus are 
+
+- New deaths smoothed per million: The target variable. Continuous variable representing the average of new deaths over 7 days per million inhabitants of the country.
+
+- New cases smoothed per million: Continuous variable representing the average of new cases over 7 days per million inhabitants of the country.
+
+- People fully vaccinated per hundred: Continuous variable representing the number of people vaccinated in that country per hundred inhabitants of the country, so the % of people fully vaccinated.
+
+- Continent: Categorical variable representing the continent with six factors: Africa,
+Asia, Europe, North America, Oceania and South America.
+
+- Stringency Index: Continuous variable representing a measure of the level of restrictions a country has endured
+
+- Population Density: Continuous variable representing the population density of the country
+
+- Aged 65 or older: Continuous variable representing the percentage of the population aged 65 or older.
+
+- Cardiovascular Death Rate: Continuous variable representing the cardiovascular death rate.
+
+- Diabetes Prevalence: Continuous variable representing the diabetes prevalence.
+
+- Life Expectancy: Continuous variable representing the life expectancy of the country.
+
+- Human Development Index: Continuous variable representing the Human Development Index (HDI) of the country.
+
+- Is island: Categorical variable of two levels accounting for the fact of whether the country is an island or not.
+
+- Month: Categorical variable of 12 levels accounting for the month of the year 
+
+
+Nas
+
+
+And we can see their distribution in the following plots:
+
+
+```{r}
+library(caret)
+library(doParallel)
+library(tidyverse)
+library(MASS)
+library(VGAM)
+library(e1071) 
+library(gridExtra)
+library(tictoc)
+library(mice)
+# Analysis
+
+
+trainData = read.csv("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/train_def.csv")
+trainData=trainData[,-1]
+
+testData = read.csv("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/test_def.csv")
+testData=testData[,-1]
+
+#put categorical variables as factor
+trainData$is_island=as.factor(trainData$is_island)
+trainData$continent=as.factor(trainData$continent)
+trainData$month=as.factor(trainData$month)
+
+testData$is_island=as.factor(testData$is_island)
+testData$continent=as.factor(testData$continent)
+testData$month=as.factor(testData$month)
+
+trainData %>% ggplot(aes_string(x = "new_deaths_smoothed_per_million")) +  geom_density(alpha = 0.2)
+
+
+plot_list=list()
+plot_list2=list()
+i=1
+for(names in colnames(trainData)[c(2,4,5,6,7,8,9,10,11)]){
+  plot_list[[i]]=trainData %>% ggplot(aes_string(x = names)) +  geom_density(alpha = 0.2)
+  i=i+1
+}
+
+grid.arrange(grobs=plot_list,ncol=3)
+
+par(mfrow=c(1,3))
+plot(trainData$continent)
+plot(trainData$is_island)
+plot(trainData$month)
+
+```
+
+
+
+
+
+
+## Statistical Models
+
+A first step is to analyze the influence of the variables in deaths just by eye.
+```{r}
+
+
+# rewrite continent into dummy variables in order to make correlation easier
+# it doesnt change anything else because the models work with dummies inside(?)
+# crear otro dataset solo para correlaciones y dejar el otro como base(?)
+# en el stepAIC importa porque al meterlo en una unica variable categorica no elimina
+# uno a uno niveles no significativos, pero si los separamos sí
+# leave Europe as base value
+
+#same for months??? Another way to perform correlations??
+#better to use ANOVA for cateogorical variables with many levels
+# en todo caso esto son correlaciones y no tienen en cuenta efectos no lineales
+
+data_correlations=trainData
+
+data_correlations$continent_Asia="no"
+data_correlations$continent_Asia[data_correlations$continent=="Asia"]="yes"
+data_correlations$continent_Asia=as.factor(data_correlations$continent_Asia)
+
+data_correlations$continent_Africa="no"
+data_correlations$continent_Africa[data_correlations$continent=="Africa"]="yes"
+data_correlations$continent_Africa=as.factor(data_correlations$continent_Africa)
+
+
+data_correlations$continent_Oceania="no"
+data_correlations$continent_Oceania[data_correlations$continent=="Oceania"]="yes"
+data_correlations$continent_Oceania=as.factor(data_correlations$continent_Oceania)
+
+
+data_correlations$continent_N_America="no"
+data_correlations$continent_N_America[data_correlations$continent=="North America"]="yes"
+data_correlations$continent_N_America=as.factor(data_correlations$continent_N_America)
+
+
+data_correlations$continent_S_America="no"
+data_correlations$continent_S_America[data_correlations$continent=="South America"]="yes"
+data_correlations$continent_S_America=as.factor(data_correlations$continent_S_America)
+
+meses=paste("Month",levels(data_correlations$month))
+#all months minus one that is inherently contained in the others
+for(i in 1:(length(meses)-1)){
+  data_correlations[[meses[i]]]="no"
+  data_correlations[[meses[i]]][data_correlations$month==i]="yes"
+}
+data_correlations=subset(data_correlations,select=-c(continent, month))
+
+
+## First visualization and simple model/what to expect
+
+leyenda = c("Continent", "New cases 7day p.m.", "New Deaths 7day p.m.",
+            "Full vaccinations/100", "Stringency Index", "Population Density",
+            "Aged 65 or older", "Cardiovascular death rate", "Diabetes prevalence",
+            "Life expectancy", "HDI", "Is island?", "Month")
+
+#plot each variable versus new deaths
+par(mfrow=c(3,4))
+for(i in 1:length(colnames(trainData))){
+   if(i!=3){
+      plot(x=trainData[,i], y=trainData$new_deaths_smoothed_per_million,
+           xlab=leyenda[i], ylab="New deaths 7day p.m.")
+   }
+}
+#plot(dates, y=trainData$new_deaths_smoothed_per_million)
+
+
+# which are the most correlated variables with new deaths
+
+library(ltm)
+library(rcompanion)
+y = data_correlations$new_deaths_smoothed_per_million
+categorical_variables=c("continent_Asia", "continent_Oceania", "continent_Africa",
+                        "continent_S_America", "continent_N_America", "is_island")
+categorical_variables=append(categorical_variables, meses[1:11])
+
+corr_label=matrix(nrow=length(data_correlations),ncol=length(data_correlations))
+rownames(corr_label)=colnames(data_correlations)
+colnames(corr_label)=colnames(data_correlations)
+for(i in(1:(length(data_correlations)))){
+   #print(colnames(data_correlations)[i])
+   if(colnames(data_correlations)[i] %in% categorical_variables){
+      corr_label["new_deaths_smoothed_per_million", colnames(data_correlations)[i]]=abs(biserial.cor(y, data_correlations[,i]))#take absolute value
+   }else{
+      corr_label["new_deaths_smoothed_per_million", colnames(data_correlations)[i]]=abs(cor(y, data_correlations[,i]))#take absolute value
+   }
+}
+corr_label["new_deaths_smoothed_per_million", "new_deaths_smoothed_per_million"]=1#add manually the correlation with its own
+
+corr_label <- sort(corr_label["new_deaths_smoothed_per_million",], decreasing = T)
+corr=data.frame(corr_label)
+ggplot(corr,aes(x = row.names(corr), y = corr_label)) + 
+   geom_bar(stat = "identity", fill = "lightblue") + 
+   scale_x_discrete(limits= row.names(corr)) +
+   labs(x = "", y = "New Deaths 7day p.m.", title = "Correlations") + 
+   theme(plot.title = element_text(hjust = 0, size = rel(1.5)),
+         axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+```
+
+We can see that the linear correlation is higher for new cases and aged 65 or older. In fact, a linear model with only those variables yields an R^2 of 0.55 while with all the variables, 0.60, which is not a very big improvement. However, the effectiveness of the linear model depends on the correct configuration of the variables. It is not simple to deduce a variable transformation since the plots confronting deaths versus the other variables are very noisy. This non linearities might also be captured with Machine Learning models
+
+
+## Discussion and Conclusions
