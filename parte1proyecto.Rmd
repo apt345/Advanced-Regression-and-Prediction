@@ -7,7 +7,8 @@ output: html_document
 
 <style>
 body {
-text-align: justify}
+text-align: justify;
+font-size: 9pt}
 </style>
 
 ```{r setup, include=FALSE}
@@ -93,7 +94,9 @@ testData$continent=as.factor(testData$continent)
 testData$month=as.factor(testData$month)
 
 trainData %>% ggplot(aes_string(x = "new_deaths_smoothed_per_million")) +  geom_density(alpha = 0.2)
+```
 
+```{r}
 
 plot_list=list()
 plot_list2=list()
@@ -105,6 +108,9 @@ for(names in colnames(trainData)[c(2,4,5,6,7,8,9,10,11)]){
 
 grid.arrange(grobs=plot_list,ncol=3)
 
+```
+
+```{r}
 par(mfrow=c(1,3))
 plot(trainData$continent)
 plot(trainData$is_island)
@@ -183,6 +189,37 @@ for(i in 1:length(colnames(trainData))){
            xlab=leyenda[i], ylab="New deaths 7day p.m.")
    }
 }
+```
+
+It is difficult to determine a simple mathematical relation between the variables just by looking at the plots since the data are very noisy. However, it can be seen that the number of deaths follows:
+
+- Continent: Higher number of deaths in Europe and South America. Least in Oceania, which makes sense since they are islands.
+
+- New cases: There appears to be some positive correlation, although there is a bit of noise.
+
+- Full vaccinations: Although there is some noise when the vaccinations are zero (which is the first year of the pandemic, so it makes sense that there is a lot of change), clearly vaccinations reduce the number of deaths. This makes sense since most governments have first vaccinated old or ill-conditioned people who are the most susceptible to die.
+
+- Stringency Index: There appears to be a positive correlations. This could be explained by thinking that the toughest measures were applied in the most difficult times.
+
+- Population density: There appears to be a negative correlation. There are some countries with very high population density and few deaths (which might be islands as well). Intuitively, the more population density, the higher the transmission and the number of deaths. Although probably country total population density might not be the best real measure of population density and interpersonal contact of the cities.
+
+- Aged 65 or older: It appears that the higher the percentage of old people, the higher the number of deaths, which seems intuitive. There are some data with the highest percentage of old people and few deaths, but this might be an outlier that follows another trend (an island for example).
+
+- Cardiovascular death rate: Unexpectedly, the higher the cardiovascular risk, the lower the number of deaths. Maybe because people at risk took more measures that people with no pathologies that felt safe.
+
+- Diabetes prevalence: Unexpectedly, the higher the diabetes prevalence, the lower the number of deaths. The same explanation as for cardiovascular death rate could be applied.
+
+- Life expectancy: The higher the life expectancy, the higher the number of deaths. This is intuitive since the higher the life expectancy, the higher the number of old people.
+
+- Human Development Index: The higher the HDI, the higher the number of deaths. High HDI corresponds to very developed countries, tipically with an old population.
+
+- Is island?: Clearly the fact that islands can manage better their communications with the rest of the world and reduce transmission
+
+- Month: Summer months present less deaths maybe because the virus gets milder but also since data are only for one summer and one should keep in mind that that was just after months of the hardest restrictions and lockdown.
+
+
+Since finding transformations is a difficult task, one can 
+```{r}
 #plot(dates, y=trainData$new_deaths_smoothed_per_million)
 
 
@@ -221,7 +258,18 @@ ggplot(corr,aes(x = row.names(corr), y = corr_label)) +
 
 ```
 
-We can see that the linear correlation is higher for new cases and aged 65 or older. In fact, a linear model with only those variables yields an R^2 of 0.55 while with all the variables, 0.60, which is not a very big improvement. However, the effectiveness of the linear model depends on the correct configuration of the variables. It is not simple to deduce a variable transformation since the plots confronting deaths versus the other variables are very noisy. This non linearities might also be captured with Machine Learning models
+We can see that the linear correlation is higher for new cases and aged 65 or older. In fact, a linear model with only those variables yields an R^2 of 0.55 while with all the variables, 0.60, which is not a very big improvement. However, the effectiveness of the linear model depends on the correct configuration of the variables. It is not simple to deduce a variable transformation since the plots confronting deaths versus the other variables are very noisy. This non-linearities might also be captured with Machine Learning models
 
+
+
+
+
+Obtaining a prediction inverval
+
+```{r}
+
+```
 
 ## Discussion and Conclusions
+
+Difficult to obtain exact variable transformations, maybe also because each country has its own optimal transformation.
