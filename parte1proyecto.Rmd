@@ -75,6 +75,7 @@ library(e1071)
 library(gridExtra)
 library(tictoc)
 library(mice)
+library(glmnet)
 # Analysis
 
 
@@ -258,17 +259,209 @@ ggplot(corr,aes(x = row.names(corr), y = corr_label)) +
 
 ```
 
-We can see that the linear correlation is higher for new cases and aged 65 or older. In fact, a linear model with only those variables yields an R^2 of 0.55 while with all the variables, 0.60, which is not a very big improvement. However, the effectiveness of the linear model depends on the correct configuration of the variables. It is not simple to deduce a variable transformation since the plots confronting deaths versus the other variables are very noisy. This non-linearities might also be captured with Machine Learning models
+We can see that the linear correlation is higher for new cases and aged 65 or older. In fact, a linear model with only those variables yields an R^2 of 0.55 while with all the variables, 0.60, which is not a very big improvement. However, the effectiveness of the linear model depends on the correct configuration of the variables. It is not simple to deduce a variable transformation since the plots confronting deaths versus the other variables are very noisy. This non-linearities might also be captured with Machine Learning models.
 
-
-
-
-
-Obtaining a prediction inverval
+Let's first grasp the main idea with the most correlated variables doing a simple linear regression model that yields.
 
 ```{r}
+simple_model=lm(new_deaths_smoothed_per_million~new_cases_smoothed_per_million+
+                   aged_65_older+human_development_index, trainData)
+#summary(simple_model)
+
+#evaluate its performance
+predictions <- predict(simple_model, newdata=testData)
+# r squared on the test
+#cor(testData$new_deaths_smoothed_per_million, predictions)^2
+#RMSE
+RMSE_simple_model <- sqrt(mean((predictions - testData$new_deaths_smoothed_per_million)^2))
+#RMSE_simple_model
+```
+
+| $\beta_0$| $\beta_{Cases}$ | $\beta_{Age65}$ | $\beta_{HDI}$ | RMSE (test)| $R^2$ (test)|
+|:-------------:|:------------:|:-----------:|:-----------:|:-------------:|:-----:|
+|0.81 $\pm$ 0.04|(1.393 $\pm$ 0.006)$10^{-2}$|0.083 $\pm$ 0.002|-1.72 $\pm$ 0.07|1.75|0.56|
+
+This means that increasing one unit the number of cases per million translates into 0.01393 more deaths. More cases mean more deaths, which seems intuitive. This coefficient also yields very useful information regarding COVID-19 mortality. For every COVID case, around 1.4% of people die. It can also be seen that a 1% increase in the percentage of population older than 65 leads to an increase of 0.083 average deaths per million, which seems intuitive but also a very small increase in deaths. Finally, the HDI coefficient shows that more developed countries tackle better the fight against COVID with less deaths, although HDI is a variable between 0 and 1, so the real differences between countries are small. With only these 3 variables the model is able to explain more than half of the variability, with an $R^2=0.56$.
+
+But the real situation is more complex. In order to try to find the most relevant predictors, backwards regression with criteria such AIC can be used. Also, other methods like Lasso, Ridge Regression or Elastic Net will shrink the coefficients to 0 trying to find the most relevant ones. Dimension reduction techniques like Principal Component Regression or Partial Least squares will also be used. The following table shows the performance of the different techniques
+
+
+```{r}
+ctrl <- trainControl(method = "repeatedcv", 
+                     number = 5, repeats = 4)
 
 ```
+
+```{r, eval=False}
+# full linear regression
+full_model=lm(new_deaths_smoothed_per_million~., trainData)
+summary(full_model)
+#evaluate its performance
+predictions <- predict(full_model, newdata=testData)
+# r squared on the test
+cor(testData$new_deaths_smoothed_per_million, predictions)^2
+#RMSE
+RMSE_simple_model <- sqrt(mean((predictions - testData$new_deaths_smoothed_per_million)^2))
+RMSE_simple_model
+
+```
+
+```{r}
+# backwards regression
+
+
+```
+
+```{r}
+# Forward regression
+for_tune <- train(new_deaths_smoothed_per_million~., data = trainData, 
+                  method = "leapForward", 
+                  preProc=c('scale', 'center'),
+                  tuneGrid = expand.grid(nvmax = 1:25),
+                  trControl = ctrl)
+summary(for_tune)
+for_tune
+
+
+```
+
+
+```{r}
+# For penalized models use glmnet
+
+# Lasso (alpha=0)
+x = model.matrix(new_deaths_smoothed_per_million~., trainData)[,-1]
+y = trainData$new_deaths_smoothed_per_million
+#  Find the best lambda using cross-validation
+set.seed(123) 
+cv <- cv.glmnet(x, y, alpha = 0)
+# Display the best lambda value
+cv$lambda.min
+# Fit the final model on the training data
+model <- glmnet(x, y, alpha = 0, lambda = cv$lambda.min)
+# Display regression coefficients
+#coef(model)
+# Make predictions on the test data
+x.test <- model.matrix(new_deaths_smoothed_per_million ~., testData)[,-1]
+predictions <- model %>% predict(x.test) %>% as.vector()
+# Model performance metrics
+data.frame(
+  RMSE = RMSE(predictions, testData$new_deaths_smoothed_per_million),
+  Rsquare = R2(predictions, testData$new_deaths_smoothed_per_million)
+)
+```
+
+
+```{r}
+# Ridge regression (alpha = 1 )
+x = model.matrix(new_deaths_smoothed_per_million~., trainData)[,-1]
+y = trainData$new_deaths_smoothed_per_million
+#  Find the best lambda using cross-validation
+set.seed(123) 
+cv <- cv.glmnet(x, y, alpha = 1)
+# Display the best lambda value
+cv$lambda.min
+# Fit the final model on the training data
+model <- glmnet(x, y, alpha = 1, lambda = cv$lambda.min)
+# Display regression coefficients
+#coef(model)
+# Make predictions on the test data
+x.test <- model.matrix(new_deaths_smoothed_per_million ~., testData)[,-1]
+predictions <- model %>% predict(x.test) %>% as.vector()
+# Model performance metrics
+data.frame(
+  RMSE = RMSE(predictions, testData$new_deaths_smoothed_per_million),
+  Rsquare = R2(predictions, testData$new_deaths_smoothed_per_million)
+)
+```
+
+```{r}
+# Elastic Net (alpha between 0 and 1)
+x = model.matrix(new_deaths_smoothed_per_million~., trainData)[,-1]
+y = trainData$new_deaths_smoothed_per_million
+#  Find the best lambda using cross-validation
+set.seed(123) 
+cv <- cv.glmnet(x, y, alpha = 0.3)
+# Display the best lambda value
+cv$lambda.min
+# Fit the final model on the training data
+model <- glmnet(x, y, alpha = 0.3, lambda = cv$lambda.min)
+# Display regression coefficients
+#coef(model)
+# Make predictions on the test data
+x.test <- model.matrix(new_deaths_smoothed_per_million ~., testData)[,-1]
+predictions <- model %>% predict(x.test) %>% as.vector()
+# Model performance metrics
+data.frame(
+  RMSE = RMSE(predictions, testData$new_deaths_smoothed_per_million),
+  Rsquare = R2(predictions, testData$new_deaths_smoothed_per_million)
+)
+```
+
+```{r}
+# Principal Component Regression
+
+library(pls)
+
+pcr.fit = pcr(full_model, data=trainData, ncomp = 8, validation = "LOO")
+summary(pcr.fit)
+plot(RMSEP(pcr.fit), legendpos = "topright")
+
+pred = predict(pcr.fit, ncomp=4, newdata=testData)
+y.test = log(testData$new_deaths_smoothed_per_million)
+postResample(pred = pred,  obs = y.test)
+
+```
+
+```{r}
+# Partial Least Squares
+
+# With Caret:
+pls_tune <- train(ModelF, data = training,
+                  method='pls',
+                  preProc=c('scale','center'),
+                  tuneGrid = expand.grid(ncomp = 2:8),
+                  trControl=ctrl)
+plot(pls_tune)
+test_results$pls <- predict(pls_tune, testing)
+postResample(pred = test_results$pls,  obs = test_results$price)
+
+```
+
+| Model | RMSE (test) | $R^2$ (test)| Number of variables|
+|:-----:|:----:|:--:|:------------------:|
+|Simple L.R.|1.75 |0.56 |3|
+|Full L. R.|1.68 |0.59 |12|
+| Backwards regression| | |
+| Lasso |1.685 |0.595 |
+| Ridge |1.683 |0.595 |
+| Elastic Net |1.683 |0.595 |
+| PCR | | |
+| PLS | | |
+
+
+The best one is   which has the following coefficients:
+
+| Model | $\beta_0$| $\beta_{Cases}$ |$\beta_{continent}$  | $\beta_{month}$| $\beta_{Age65}$ | $\beta_{HDI}$ | $\beta_{island}$| $\beta_{pop.dens}$ | $\beta_{l.exp}$ | $\beta_{Str.In.}$| $\beta_{Vac}$ | $\beta_{Diabetes}$ | $\beta_{Cardio}$ | RMSE |
+|:-------------:|:-------------:|:------------:|:-----------:|:-----------:|:-------------:|:-------------:|:------------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|
+
+
+This means that the explanation of the problem is:
+
+
+
+
+Finally, we can use this knowledge not only to explain the main features that drive the pandemic's death but also to make predictions. The data used stop at march 2021, let's try to predict the situation now (May), obtaining a prediction interval for Spain's deaths. Take the best model and plug in Spain today's characteristics, which are:
+
+```{r, eval=FALSE}
+# So let's predict next month CO2 emissions:
+new.data = data.frame(Year=2020, Month=as.factor(c(3)), CO2Lag1=data$CO2[length(data$CO2)])
+predict(Model.season, newdata = new.data, interval = 'prediction')
+
+
+```
+
+One gets an estimated average deaths per million of  which in comparison with the average so far this month, , is a reasonable prediction.
 
 ## Discussion and Conclusions
 
