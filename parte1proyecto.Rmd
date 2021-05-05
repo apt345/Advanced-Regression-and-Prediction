@@ -8,7 +8,7 @@ output: html_document
 <style>
 body {
 text-align: justify;
-font-size: 9pt}
+font-size: 10pt}
 </style>
 
 ```{r setup, include=FALSE}
@@ -21,11 +21,11 @@ The COVID-19 pandemic was first noticed in December 2019 and since then has prop
 
 ## Dataset description
 
-The dataset was taken from:  
+The dataset was taken from the OurWordlInData repository: https://github.com/owid/covid-19-data/tree/master/public/data on the 14th of April 2021. Data were taken only from July 1st 2020 in advance since data from the first wave is not so reliable and the goal of this project is not to focus only on the first wave. In total, the data set contained 47263 observations.
 
 First thing is that in order to account for the seasonality of these events, one needs to work with lag variables. This is why the "smoothed" (7 day average) variables have been used instead of the daily ones. Furthermore, since this analysis includes different countries, it is important to normalize the data taking into account the total population of the country. Finally, the dataset contained many 
 
-Since accounting for individual countries would not generalize well and generate noise, it has been chosen to work only with continents, with together with the month, can also serve as an indication of the season of the year. However, many countries have been erased to avoid micro-countries as well as full continents. The full list of countries selected for this project (even if country variable is not used) is:
+Since accounting for individual countries would not generalize well and generate noise,  it has been chosen to work only with continents,  with together with the month,  can also serve as an indication of the season of the year. However,  many countries have been erased to avoid micro-countries as well as full continents. The full list of countries present in the dataset discarded for this project (even if country variable is not used) is: Africa, Andorra, Anguilla, Antigua and Barbuda, Asia, Bermuda, Cayman Islands, Dominica, Europe, European Union, Faeroe Islands, Falkland Islands, Gibraltar, Grenada, Guernsey, International, Isle of Man, Jersey, Kosovo, Liechtenstein, Marshall Islands, Micronesia, Monaco, Montserrat, North America, Northern Cyprus, Oceania, Saint Helena, Saint Kitts and Nevis, Saint Lucia, Saint Vincent and the Grenadines, Samoa, San Marino, Sao Tome and Principe, Seychelles, Solomon Islands, Somalia, South America, South Sudan, Syria, Timor, Togo, Trinidad and Tobago, Turks and Caicos Islands, Vanuatu, Vatican, World.
 
 Another variable, is island, was added to account for the fact that islands have it easier to close borders and protect themselves from the virus.
 
@@ -56,10 +56,10 @@ Asia, Europe, North America, Oceania and South America.
 
 - Is island: Categorical variable of two levels accounting for the fact of whether the country is an island or not.
 
-- Month: Categorical variable of 12 levels accounting for the month of the year 
+- Month: Categorical variable of 10 levels accounting for the month of the year. Data were taken from July 1st 2020, meaning that May and June are not present.
 
 
-Nas
+It is important to note that some of these variables contained NA's. The way this has been fixed is by noting that NA in vaccines and cases appeared mostly when there were 0, so this cases were set to 0. Also, some NAs on population density, HDI and other country variables can be replaced just by a quick search on Google. Finally, the rest of the NAs were imputed using Random Forest imputer of the R package Mice.
 
 
 And we can see their distribution in the following plots:
@@ -79,10 +79,10 @@ library(glmnet)
 # Analysis
 
 
-trainData = read.csv("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/train_def.csv")
+trainData = read.csv("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/train_def_def.csv")
 trainData=trainData[,-1]
 
-testData = read.csv("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/test_def.csv")
+testData = read.csv("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/test_def_def.csv")
 testData=testData[,-1]
 
 #put categorical variables as factor
@@ -93,10 +93,15 @@ trainData$month=as.factor(trainData$month)
 testData$is_island=as.factor(testData$is_island)
 testData$continent=as.factor(testData$continent)
 testData$month=as.factor(testData$month)
-
-trainData %>% ggplot(aes_string(x = "new_deaths_smoothed_per_million")) +  geom_density(alpha = 0.2)
 ```
 
+<p align="center">
+```{r, fig.height=4, fig.width=4}
+trainData %>% ggplot(aes_string(x = "new_deaths_smoothed_per_million")) +  geom_density(alpha = 0.2)
+```
+</p>
+
+<p align="center">
 ```{r}
 
 plot_list=list()
@@ -110,17 +115,19 @@ for(names in colnames(trainData)[c(2,4,5,6,7,8,9,10,11)]){
 grid.arrange(grobs=plot_list,ncol=3)
 
 ```
+</p>
 
-```{r}
+<p align="center">
+```{r, fig.height=3}
 par(mfrow=c(1,3))
-plot(trainData$continent)
-plot(trainData$is_island)
-plot(trainData$month)
+plot(trainData$continent, main="Continent")
+plot(trainData$is_island, main="Is island")
+plot(trainData$month, main="Month")
 
 ```
+</p>
 
-
-
+April has less values because these data were downloaded on mid April 2021.
 
 
 
@@ -181,7 +188,10 @@ leyenda = c("Continent", "New cases 7day p.m.", "New Deaths 7day p.m.",
             "Full vaccinations/100", "Stringency Index", "Population Density",
             "Aged 65 or older", "Cardiovascular death rate", "Diabetes prevalence",
             "Life expectancy", "HDI", "Is island?", "Month")
+```
 
+<p align="center">
+```{r}
 #plot each variable versus new deaths
 par(mfrow=c(3,4))
 for(i in 1:length(colnames(trainData))){
@@ -191,6 +201,7 @@ for(i in 1:length(colnames(trainData))){
    }
 }
 ```
+</p>
 
 It is difficult to determine a simple mathematical relation between the variables just by looking at the plots since the data are very noisy. However, it can be seen that the number of deaths follows:
 
@@ -220,6 +231,8 @@ It is difficult to determine a simple mathematical relation between the variable
 
 
 Since finding transformations is a difficult task, one can 
+
+
 ```{r}
 #plot(dates, y=trainData$new_deaths_smoothed_per_million)
 
@@ -248,42 +261,58 @@ corr_label["new_deaths_smoothed_per_million", "new_deaths_smoothed_per_million"]
 
 corr_label <- sort(corr_label["new_deaths_smoothed_per_million",], decreasing = T)
 corr=data.frame(corr_label)
+```
+
+
+<p align="center">
+```{r}
 ggplot(corr,aes(x = row.names(corr), y = corr_label)) + 
    geom_bar(stat = "identity", fill = "lightblue") + 
    scale_x_discrete(limits= row.names(corr)) +
    labs(x = "", y = "New Deaths 7day p.m.", title = "Correlations") + 
    theme(plot.title = element_text(hjust = 0, size = rel(1.5)),
-         axis.text.x = element_text(angle = 45, hjust = 1))
+         axis.text.x = element_text(angle = 90, hjust = 1))
 
+```
+</p>
 
+We can see that the linear correlation is higher for new cases and aged 65 or older as well as HDI, as expected from the previous plots.
+
+### Linear regression models
+
+Let's first grasp the main idea with the most correlated variables doing a simple linear regression model that yields:
+
+```{r}
+test_results <- data.frame(new_deaths_smoothed_per_million=testData$new_deaths_smoothed_per_million)
 
 ```
 
-We can see that the linear correlation is higher for new cases and aged 65 or older. In fact, a linear model with only those variables yields an R^2 of 0.55 while with all the variables, 0.60, which is not a very big improvement. However, the effectiveness of the linear model depends on the correct configuration of the variables. It is not simple to deduce a variable transformation since the plots confronting deaths versus the other variables are very noisy. This non-linearities might also be captured with Machine Learning models.
-
-Let's first grasp the main idea with the most correlated variables doing a simple linear regression model that yields.
-
 ```{r}
-simple_model=lm(new_deaths_smoothed_per_million~new_cases_smoothed_per_million+
-                   aged_65_older+human_development_index, trainData)
+simple_model=lm(new_deaths_smoothed_per_million~new_cases_smoothed_per_million+ aged_65_older+human_development_index, trainData)
 #summary(simple_model)
 
-#evaluate its performance
-predictions <- predict(simple_model, newdata=testData)
-# r squared on the test
-#cor(testData$new_deaths_smoothed_per_million, predictions)^2
-#RMSE
-RMSE_simple_model <- sqrt(mean((predictions - testData$new_deaths_smoothed_per_million)^2))
-#RMSE_simple_model
+#save prediction
+test_results$lm <- predict(simple_model, testData)
+# evaluate its performance
+#postResample(pred = test_results$lm,  obs = test_results$new_deaths_smoothed_per_million)
+
 ```
 
 | $\beta_0$| $\beta_{Cases}$ | $\beta_{Age65}$ | $\beta_{HDI}$ | RMSE (test)| $R^2$ (test)|
 |:-------------:|:------------:|:-----------:|:-----------:|:-------------:|:-----:|
-|0.81 $\pm$ 0.04|(1.393 $\pm$ 0.006)$10^{-2}$|0.083 $\pm$ 0.002|-1.72 $\pm$ 0.07|1.75|0.56|
+|1.06 $\pm$ 0.05|(1.385 $\pm$ 0.006)$10^{-2}$|0.085 $\pm$ 0.002|-2.07 $\pm$ 0.09|1.94|0.62|
 
-This means that increasing one unit the number of cases per million translates into 0.01393 more deaths. More cases mean more deaths, which seems intuitive. This coefficient also yields very useful information regarding COVID-19 mortality. For every COVID case, around 1.4% of people die. It can also be seen that a 1% increase in the percentage of population older than 65 leads to an increase of 0.083 average deaths per million, which seems intuitive but also a very small increase in deaths. Finally, the HDI coefficient shows that more developed countries tackle better the fight against COVID with less deaths, although HDI is a variable between 0 and 1, so the real differences between countries are small. With only these 3 variables the model is able to explain more than half of the variability, with an $R^2=0.56$.
+This means that increasing one unit the number of cases per million translates into 0.01385 more deaths. More cases mean more deaths, which seems intuitive. This coefficient also yields very useful information regarding COVID-19 mortality. For every COVID case, around 1.4% of people die. It can also be seen that a 1% increase in the percentage of population older than 65 leads to an increase of 0.085 average deaths per million, which seems intuitive but also a very small increase in deaths. Finally, the HDI coefficient shows that more developed countries tackle better the fight against COVID with less deaths, although HDI is a variable between 0 and 1, so the real differences between countries are small. With only these 3 variables the model is able to explain more than half of the variability of the test set, with an $R^2=0.62$.
 
-But the real situation is more complex. In order to try to find the most relevant predictors, backwards regression with criteria such AIC can be used. Also, other methods like Lasso, Ridge Regression or Elastic Net will shrink the coefficients to 0 trying to find the most relevant ones. Dimension reduction techniques like Principal Component Regression or Partial Least squares will also be used. The following table shows the performance of the different techniques
+We can try to see the difference by fitting a linear model with all the variables. This full model has an $R^2=0.65$, which is not a very big improvement considering we went from 3 variables to 26 (including dummies). This means that if we want to improve the model further, we need to include some kind of non-linear term. Since identifying pure transformation for the variables seems difficult, we would try first with one to one interactions between variables and leave the identification of non-linear trends to Machine Learning models.
+
+A model with interactions was done but excluding interaction terms of month and vaccinations since when merging them with the other variables there were levels with zero variance. By doing this model with interactions one gets an $R^2=0.77$ which is a considerable improvement but at the cost of increasing the variable size up to 210 variables (including dummies). In order to try to find the most relevant predictors, several techniques will be used:
+
+- Stepwise regression: with backwards, forward and stepwise methods that try to find the best subset of variables.
+
+- Penalization Algorithms: Like Lasso, Ridge Regression or Elastic Net which will shrink the coefficients related with the "useless" variables to 0 trying to find the most relevant ones.
+
+- Dimension reduction techniques: like Principal Component Regression or Partial Least squares 
 
 
 ```{r}
@@ -292,177 +321,359 @@ ctrl <- trainControl(method = "repeatedcv",
 
 ```
 
-```{r, eval=False}
-# full linear regression
-full_model=lm(new_deaths_smoothed_per_million~., trainData)
-summary(full_model)
-#evaluate its performance
-predictions <- predict(full_model, newdata=testData)
-# r squared on the test
-cor(testData$new_deaths_smoothed_per_million, predictions)^2
-#RMSE
-RMSE_simple_model <- sqrt(mean((predictions - testData$new_deaths_smoothed_per_million)^2))
-RMSE_simple_model
+```{r}
+#remove response and vaccinations
+varnames=colnames(trainData[,-c(3)])
+
+# Formula allowing only interaction between two variables 
+double_formula = c()
+for (i in 1:(length(varnames))){
+  for (j in 1:(length(varnames))){
+    if(i<j & !(j %in% c(3,11))& !(i %in% c(3,11))){
+       #print(j)
+      double_formula = c(double_formula, paste(c(varnames[i], varnames[j]), collapse = ":"))  
+    }
+  }
+}
+double_interaction_formula = paste(c( varnames, paste(double_formula, collapse = "+")), collapse = "+")
+
+final_formula=paste(c("new_deaths_smoothed_per_million~"), double_interaction_formula)
+# full linear regression robust rlm
+full_model=lm(as.formula(final_formula), trainData)
+#summary(full_model)
+#save prediction
+test_results$full_lm <- predict(full_model, testData)
+# evaluate its performance
+#postResample(pred = test_results$full_lm,  obs = test_results$new_deaths_smoothed_per_million)
 
 ```
 
+### Stepwise Regression
 ```{r}
 # backwards regression
+# back_tune <- train(as.formula(final_formula), data = trainData,
+#                    method = "leapBackward",
+#                    preProc=c('scale', 'center'),
+#                    tuneGrid = expand.grid(nvmax = 2:30),
+#                    trControl = ctrl)
+# save(back_tune, file="C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/back_tune.RData")
+load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/back_tune.RData")
+#back_tune
+# which variables are selected?
+#coef(back_tune$finalModel, back_tune$bestTune$nvmax)
+test_results$bw <- predict(back_tune, testData)
+#evaluate its performance
+#postResample(pred = test_results$bw,  obs = test_results$new_deaths_smoothed_per_million)
 
-
+#could work with 15 predictors
 ```
 
 ```{r}
 # Forward regression
-for_tune <- train(new_deaths_smoothed_per_million~., data = trainData, 
-                  method = "leapForward", 
-                  preProc=c('scale', 'center'),
-                  tuneGrid = expand.grid(nvmax = 1:25),
-                  trControl = ctrl)
-summary(for_tune)
-for_tune
+# for_tune <- train(as.formula(final_formula), data = trainData,
+#                    method = "leapForward",
+#                    preProc=c('scale', 'center'),
+#                    tuneGrid = expand.grid(nvmax = 2:30),
+#                    trControl = ctrl)
+# save(for_tune, file="C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/for_tune.RData")
+load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/for_tune.RData")
+#for_tune
+
+# which variables are selected?
+#coef(for_tune$finalModel, for_tune$bestTune$nvmax)
+test_results$forward <- predict(for_tune, testData)
+#postResample(pred = test_results$forward,  obs = test_results$new_deaths_smoothed_per_million)
+
+```
+
+```{r}
+# Stepwise regression
+# step_tune <- train(as.formula(final_formula), data = trainData,
+#                    method = "leapSeq",
+#                    preProc=c('scale', 'center'),
+#                    tuneGrid = expand.grid(nvmax = 1:20),
+#                    trControl = ctrl)
+# save(step_tune, file="C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/step_tune.RData")
+load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/step_tune.RData")
+
+# which variables are selected?
+#coef(step_tune$finalModel, unlist(step_tune$bestTune))
+
+
+test_results$seq <- predict(step_tune, testData)
+#postResample(pred = test_results$seq,  obs = test_results$new_deaths_smoothed_per_million)
 
 
 ```
 
+<p align="center">
+```{r, fig.height=3, fig.width=3}
+par(mfrow=c(1,3))
+plot(back_tune, main= "Backwards")
+plot(for_tune, main= "Forward")
+plot(step_tune, main="Stepwise")
+
+```
+</p>
+
+
+
+### Penalized Regression
 
 ```{r}
-# For penalized models use glmnet
+# For penalized models use glmnet since it finds the optimal penalization parameter better than caret (in caret you need to specify the grid)
 
 # Lasso (alpha=0)
-x = model.matrix(new_deaths_smoothed_per_million~., trainData)[,-1]
-y = trainData$new_deaths_smoothed_per_million
-#  Find the best lambda using cross-validation
-set.seed(123) 
-cv <- cv.glmnet(x, y, alpha = 0)
-# Display the best lambda value
-cv$lambda.min
-# Fit the final model on the training data
-model <- glmnet(x, y, alpha = 0, lambda = cv$lambda.min)
-# Display regression coefficients
-#coef(model)
+# x = model.matrix(as.formula(final_formula), trainData)[,-1]
+# y = trainData$new_deaths_smoothed_per_million
+# #  Find the best lambda using cross-validation
+# set.seed(123)
+# cv <- cv.glmnet(x, y, alpha = 0)
+# # Display the best lambda value
+# #cv$lambda.min
+# # Fit the final model on the training data
+# lasso <- glmnet(x, y, alpha = 0, lambda = cv$lambda.min)
+# save(lasso, file="C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/lasso.RData")
+load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/lasso.RData")
+# Display regression coefficients divided by tge original one to see the shrinkage.
+#coef(model)[coef(model)/coef(full_model)>0.8]
 # Make predictions on the test data
-x.test <- model.matrix(new_deaths_smoothed_per_million ~., testData)[,-1]
-predictions <- model %>% predict(x.test) %>% as.vector()
+x.test <- model.matrix(as.formula(final_formula), testData)[,-1]
+predictions <- lasso %>% predict(x.test) %>% as.vector()
+test_results$lasso=predictions
+#plot(cv$glmnet.fit, xvar="lambda")
 # Model performance metrics
-data.frame(
-  RMSE = RMSE(predictions, testData$new_deaths_smoothed_per_million),
-  Rsquare = R2(predictions, testData$new_deaths_smoothed_per_million)
-)
+# data.frame(
+#   RMSE = RMSE(predictions, testData$new_deaths_smoothed_per_million),
+#   Rsquare = R2(predictions, testData$new_deaths_smoothed_per_million)
+# )
 ```
 
 
 ```{r}
 # Ridge regression (alpha = 1 )
-x = model.matrix(new_deaths_smoothed_per_million~., trainData)[,-1]
-y = trainData$new_deaths_smoothed_per_million
-#  Find the best lambda using cross-validation
-set.seed(123) 
-cv <- cv.glmnet(x, y, alpha = 1)
-# Display the best lambda value
-cv$lambda.min
-# Fit the final model on the training data
-model <- glmnet(x, y, alpha = 1, lambda = cv$lambda.min)
+# x = model.matrix(as.formula(final_formula), trainData)[,-1]
+# y = trainData$new_deaths_smoothed_per_million
+# #  Find the best lambda using cross-validation
+# set.seed(123)
+# cv <- cv.glmnet(x, y, type.measure="mse", alpha = 1)
+# # Display the best lambda value
+# #cv$lambda.min
+# # Fit the final model on the training data
+# ridge <- glmnet(x, y, alpha = 1, lambda = cv$lambda.min)
+# save(ridge, file="C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/ridge.RData")
+load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/ridge.RData")
+
 # Display regression coefficients
-#coef(model)
+#coef(model)[coef(model)/coef(full_model)>0.8]
 # Make predictions on the test data
-x.test <- model.matrix(new_deaths_smoothed_per_million ~., testData)[,-1]
-predictions <- model %>% predict(x.test) %>% as.vector()
+x.test <- model.matrix(as.formula(final_formula), testData)[,-1]
+predictions <- ridge %>% predict(x.test) %>% as.vector()
+test_results$ridge=predictions
+
 # Model performance metrics
-data.frame(
-  RMSE = RMSE(predictions, testData$new_deaths_smoothed_per_million),
-  Rsquare = R2(predictions, testData$new_deaths_smoothed_per_million)
-)
+# data.frame(
+#  RMSE = RMSE(predictions, testData$new_deaths_smoothed_per_million),
+#  Rsquare = R2(predictions, testData$new_deaths_smoothed_per_million)
+# )
 ```
 
 ```{r}
 # Elastic Net (alpha between 0 and 1)
-x = model.matrix(new_deaths_smoothed_per_million~., trainData)[,-1]
-y = trainData$new_deaths_smoothed_per_million
-#  Find the best lambda using cross-validation
-set.seed(123) 
-cv <- cv.glmnet(x, y, alpha = 0.3)
-# Display the best lambda value
-cv$lambda.min
-# Fit the final model on the training data
-model <- glmnet(x, y, alpha = 0.3, lambda = cv$lambda.min)
+# x = model.matrix(as.formula(final_formula), trainData)[,-1]
+# y = trainData$new_deaths_smoothed_per_million
+# #  Find the best lambda using cross-validation
+# set.seed(123)
+# cv <- cv.glmnet(x, y, alpha = 0.3)
+# # Display the best lambda value
+# #cv$lambda.min
+# # Fit the final model on the training data
+# elastic_net <- glmnet(x, y, alpha = 0.3, lambda = cv$lambda.min)
+# save(elastic_net, file="C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/elastic_net.RData")
+
+load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/elastic_net.RData")
 # Display regression coefficients
-#coef(model)
+#(coef(elastic_net)/coef(full_model)>0.5)
 # Make predictions on the test data
-x.test <- model.matrix(new_deaths_smoothed_per_million ~., testData)[,-1]
-predictions <- model %>% predict(x.test) %>% as.vector()
+x.test <- model.matrix(as.formula(final_formula), testData)[,-1]
+predictions <- elastic_net %>% predict(x.test) %>% as.vector()
+test_results$elastic_net=predictions
 # Model performance metrics
-data.frame(
-  RMSE = RMSE(predictions, testData$new_deaths_smoothed_per_million),
-  Rsquare = R2(predictions, testData$new_deaths_smoothed_per_million)
-)
+# data.frame(
+#  RMSE = RMSE(predictions, testData$new_deaths_smoothed_per_million),
+#   Rsquare = R2(predictions, testData$new_deaths_smoothed_per_million)
+# )
 ```
 
-```{r}
-# Principal Component Regression
-
-library(pls)
-
-pcr.fit = pcr(full_model, data=trainData, ncomp = 8, validation = "LOO")
-summary(pcr.fit)
-plot(RMSEP(pcr.fit), legendpos = "topright")
-
-pred = predict(pcr.fit, ncomp=4, newdata=testData)
-y.test = log(testData$new_deaths_smoothed_per_million)
-postResample(pred = pred,  obs = y.test)
-
-```
+### Dimension Reduction Techniques
 
 ```{r}
+# Now with Caret:
+# c7=makePSOCKcluster(7)
+# registerDoParallel(c7)
+# pcr_tune <- train(as.formula(final_formula), data = trainData,
+#                   method='pcr',
+#                   preProc=c('scale','center'),
+#                   tuneGrid = expand.grid(ncomp = 2:30),#6 is the optimal, after, not much improvement
+#                   trControl=ctrl)
+# stopCluster(c7)
+# save(pcr_tune, file="C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/pcr.RData")
+
+
+
+
 # Partial Least Squares
 
 # With Caret:
-pls_tune <- train(ModelF, data = training,
-                  method='pls',
-                  preProc=c('scale','center'),
-                  tuneGrid = expand.grid(ncomp = 2:8),
-                  trControl=ctrl)
-plot(pls_tune)
-test_results$pls <- predict(pls_tune, testing)
-postResample(pred = test_results$pls,  obs = test_results$price)
+# 
+# c7=makePSOCKcluster(7)
+# registerDoParallel(c7)
+# pls_tune <- train(as.formula(final_formula), data = trainData,
+#                   method='pls',
+#                   preProc=c('scale','center'),
+#                   tuneGrid = expand.grid(ncomp = 2:30),
+#                   trControl=ctrl)
+# stopCluster(c7)
+# save(pls_tune, file="C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/pls.RData")
+
 
 ```
 
-| Model | RMSE (test) | $R^2$ (test)| Number of variables|
+```{r}
+load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/pcr.RData")
+
+test_results$pcr <- predict(pcr_tune, testData)
+#postResample(pred = test_results$pcr,  obs = test_results$new_deaths_smoothed_per_million)
+
+
+load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/pls.RData")
+test_results$pls <- predict(pls_tune, testData)
+#postResample(pred = test_results$pls,  obs = test_results$new_deaths_smoothed_per_million)
+```
+
+
+<p align="center">
+```{r, fig.height=3, fig.width=3}
+par(mfrow=c(1,2))
+plot(pcr_tune, main="PCR")
+plot(pls_tune, main="PLS")
+```
+</p>
+
+### Final results
+
+The final results from all the models are summarized in the following table: Root Mean Squared Error on the testing set as well as $R^2$ as a way to compare the variability explained by each of the models. Finally, prediction intervals are computed in a non-parametric way such that they are robust against outliers in order to check which percentage of the test sample lies inside (thus being covered inside the model prediction) or outside these intervals.
+
+| Model | RMSE (test) | $R^2$ (test)| %test outside interval |
 |:-----:|:----:|:--:|:------------------:|
-|Simple L.R.|1.75 |0.56 |3|
-|Full L. R.|1.68 |0.59 |12|
-| Backwards regression| | |
-| Lasso |1.685 |0.595 |
-| Ridge |1.683 |0.595 |
-| Elastic Net |1.683 |0.595 |
-| PCR | | |
-| PLS | | |
+|Simple L.R.|1.94 |0.62 | 82.8% |
+| Full L. R. (no interactions)|1.87 |0.65 | 80.6% |
+| Full L. R. (with interactions)|1.50 |0.77 |21.3% |
+| Forward Regression| 1.75 | 0.69 | 38.8% |
+| Backwards Regression|1.74 |0.70 | 42.7% |
+| Stepwise Regression | 1.79 | 0.68 | 22.6% |
+| Lasso |1.67 |0.72 | 21.4% |
+| Ridge Regression |1.52 |0.77 | 24.0%|
+| Elastic Net |1.53 |0.77 | 20.7%  |
+| PCR |1.81 |0.67 | 20.5%|
+| PLS |1.62 |0.74 | 22.9% |
+| ENSEMBLE (Elastic Net + PLS) |1.56 |0.75 |22.3% | 
+
+We can recall that only with the new cases we were able to obtain around an $R^2=0.58$ and the full model with no interactions doesn't go much further beyond, only $R^2=0.65$. Clearly, the key to solving this problem is on interaction effects and non-linearities. Adding interaction effects improves greatly the model, as it can be seen in the table. Several algorithms have been used to filter the most important variables. Some of them, like Partial Least Squares, are able to maintain a similar performance to the full model with more than 200 variables with way less features.
+
+On the other hand, in order to get explainability I would choose the stepwise model, since it only has 16 variables, which is actually less than the total number of predictors (26, including dummies) and it still has an $R^2=0.68$ while having the same performance on the percentage of the test sample out of the prediction interval, around a 20%. Its coefficients are the following:
+
+| $\beta_0$| $\beta_{Cases}$ |$\beta_{island}$  | $\beta_{Asia:Cases}$| $\beta_{Oceania:Month2}$ | $\beta_{Oceania:Month12}$ | $\beta_{cases:65older}$| $\beta_{cases:diabetes}$ | $\beta_{cases:l.exp}$|
+|:-------------:|:-------------:|:------------:|:-----------:|:-----------:|:-------------:|:-----------:|:-----------:|:-----------:|
+|1.6|13.6|-0.2|-0.5|0.004|0.008|0.3|0.08|-11.9|
 
 
-The best one is   which has the following coefficients:
-
-| Model | $\beta_0$| $\beta_{Cases}$ |$\beta_{continent}$  | $\beta_{month}$| $\beta_{Age65}$ | $\beta_{HDI}$ | $\beta_{island}$| $\beta_{pop.dens}$ | $\beta_{l.exp}$ | $\beta_{Str.In.}$| $\beta_{Vac}$ | $\beta_{Diabetes}$ | $\beta_{Cardio}$ | RMSE |
-|:-------------:|:-------------:|:------------:|:-----------:|:-----------:|:-------------:|:-------------:|:------------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|
-
+| $\beta_{cases:Month2}$| $\beta_{cases:Month3}$ |$\beta_{cases:Month7}$ | $\beta_{cases:Month12}$ |$\beta_{Str.In:65older}$| $\beta_{Str.In:diabetes}$ | $\beta_{65older:Month3}$ | $\beta_{diabetes:Month3}$ |
+:-------------:|:------------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|
+|0.15|-0.02|0.06|0.1|0.6|0.1|-0.1|0.05|
 
 This means that the explanation of the problem is:
 
 
 
-
-Finally, we can use this knowledge not only to explain the main features that drive the pandemic's death but also to make predictions. The data used stop at march 2021, let's try to predict the situation now (May), obtaining a prediction interval for Spain's deaths. Take the best model and plug in Spain today's characteristics, which are:
-
 ```{r, eval=FALSE}
-# So let's predict next month CO2 emissions:
-new.data = data.frame(Year=2020, Month=as.factor(c(3)), CO2Lag1=data$CO2[length(data$CO2)])
-predict(Model.season, newdata = new.data, interval = 'prediction')
+
+# Combination
+test_results$comb = (test_results$pls+ test_results$elastic_net)/2
+#postResample(pred = test_results$comb,  obs = test_results$new_deaths_smoothed_per_million)
+
+
+
+for(names in colnames(test_results)){
+   if(names!="new_deaths_smoothed_per_million"){
+      # Final predictions:
+      yhat = lapply(test_results[names],as.numeric)[[names]]
+      #head(yhat) # show the prediction for 6 home prices
+      #hist(yhat, col="lightblue")
+      # take care: asymmetric distribution
+      
+      y = test_results$new_deaths_smoothed_per_million
+      error = y-yhat
+      #hist(error, col="lightblue")
+      # But the error is more symmetric
+      
+      # But we cannot use the information in the testing set to obtain the confidence intervals in the testing set
+      # Hence: split the testing set in two parts, one to measure the size of the noise, and the other one to compute the CIs from that size
+      
+      # Let's use the first 100 homes in testing to compute the noise size
+      noise = error[1:100]
+      sd.noise = sd(noise)
+      
+      # Non-parametric way, even more robust against outliers
+      lwr = yhat[101:length(yhat)] - 2.4*mad(noise) 
+      upr = yhat[101:length(yhat)] + 2.4*mad(noise)
+      # for normal data, sd=1.48*mad
+      
+      predictions = data.frame(real=y[101:length(y)], fit=yhat[101:length(yhat)], lwr=lwr, upr=upr)
+      predictions = predictions %>% mutate(out=factor(if_else(real<lwr | real>upr,1,0)))
+      
+      # how many real observations are out of the intervals?
+      #print(paste(c("percentage of real observations out of the interval for", names)))
+      #print(mean(predictions$out==1))
+
+   }
+}
+
+
+
+
+
 
 
 ```
 
-One gets an estimated average deaths per million of  which in comparison with the average so far this month, , is a reasonable prediction.
-
 ## Discussion and Conclusions
 
 Difficult to obtain exact variable transformations, maybe also because each country has its own optimal transformation.
+
+
+
+
+
+
+
+Finally, we can use this knowledge not only to explain the main features that drive the pandemic's death but also to make predictions. The data used stop at mid April 2021, let's try to predict the situation this summer (July), obtaining a prediction interval for Spain's deaths. Since most of the models have similar performance, I will use the full model because it includes also vaccine information. See the results plugging in Spain's characteristics, which are 50% of vaccinated people by July (following government estimation); 1000 cases on average (20 per million inhabitants of Spain) knowing that there are now around 10000 and last July it descended to around 1000 cases; Stringency Index with low measures, 30. HDI of 0.904 ; population density 93.105; 19.436% of people older than 65; cardiovascular death rate of 99.403; diabetes prevalence of 7.17; life expectancy of 83.56 years and on month 7 (July), in Europe and not an island yielding a negative value of deaths (which is impossible), but meaning that there will be very very low number of deaths (we will see).
+
+```{r, eval=FALSE}
+spain=data.frame(NA)
+spain$people_fully_vaccinated_per_hundred=50
+spain$new_cases_smoothed_per_million=20.0
+spain$stringency_index=30.0
+spain$human_development_index=0.904
+spain$population_density=93.105
+spain$aged_65_older=19.436
+spain$cardiovasc_death_rate=99.403
+spain$diabetes_prevalence=7.17
+spain$life_expectancy=83.56
+spain$continent="Europe"
+spain$month="7"
+spain$is_island="no"
+spain=spain[,-1]
+
+predict(pls_tune, spain)
+```
