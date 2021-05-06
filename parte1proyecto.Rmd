@@ -21,13 +21,13 @@ The COVID-19 pandemic was first noticed in December 2019 and since then has prop
 
 ## Dataset description
 
-The dataset was taken from the OurWordlInData repository: https://github.com/owid/covid-19-data/tree/master/public/data on the 14th of April 2021. Data were taken only from July 1st 2020 in advance since data from the first wave is not so reliable and the goal of this project is not to focus only on the first wave. In total, the data set contained 47263 observations.
+The dataset was taken from the OurWordlInData repository: https://github.com/owid/covid-19-data/tree/master/public/data on the 14th of April 2021. Data were selected only from July 1st 2020 in advance since data from the first wave is not so reliable and the goal of this project is not to focus only on the first wave. In total, the data set contained 47263 observations.
 
-First thing is that in order to account for the seasonality of these events, one needs to work with lag variables. This is why the "smoothed" (7 day average) variables have been used instead of the daily ones. Furthermore, since this analysis includes different countries, it is important to normalize the data taking into account the total population of the country. Finally, the dataset contained many 
+First thing is that in order to account for the seasonality of these events, one needs to work with lag variables. This is why the "smoothed" (7 day average) variables have been used instead of the daily ones. Furthermore, since this analysis includes different countries, it is important to normalize the data taking into account the total population of the country, either by taking parts per hundred or per million inhabitants. Also, the dataset contained many variables that were very related with each other (like people above 65 and people above 70, clearly all the ones in the second group are inside the first) and only one of those was kept. Finally, features like admissions in ICU were discarded since they had an enormous amount of missing values (well above 50%).
 
-Since accounting for individual countries would not generalize well and generate noise,  it has been chosen to work only with continents,  with together with the month,  can also serve as an indication of the season of the year. However,  many countries have been erased to avoid micro-countries as well as full continents. The full list of countries present in the dataset discarded for this project (even if country variable is not used) is: Africa, Andorra, Anguilla, Antigua and Barbuda, Asia, Bermuda, Cayman Islands, Dominica, Europe, European Union, Faeroe Islands, Falkland Islands, Gibraltar, Grenada, Guernsey, International, Isle of Man, Jersey, Kosovo, Liechtenstein, Marshall Islands, Micronesia, Monaco, Montserrat, North America, Northern Cyprus, Oceania, Saint Helena, Saint Kitts and Nevis, Saint Lucia, Saint Vincent and the Grenadines, Samoa, San Marino, Sao Tome and Principe, Seychelles, Solomon Islands, Somalia, South America, South Sudan, Syria, Timor, Togo, Trinidad and Tobago, Turks and Caicos Islands, Vanuatu, Vatican, World.
+On the other hand, since accounting for individual countries would not generalize well and generate noise, it has been chosen to work only with continents, that together with the month, can also serve as an indication of the season of the year (in case that has an impact on virus propagation). However, first, many countries have been erased to avoid micro-countries as well as full continents. The full list of entities present in the original dataset that have been discarded for this project (even if country variable is not used) is: Africa, Andorra, Anguilla, Antigua and Barbuda, Asia, Bermuda, Cayman Islands, Dominica, Europe, European Union, Faeroe Islands, Falkland Islands, Gibraltar, Grenada, Guernsey, International, Isle of Man, Jersey, Kosovo, Liechtenstein, Marshall Islands, Micronesia, Monaco, Montserrat, North America, Northern Cyprus, Oceania, Saint Helena, Saint Kitts and Nevis, Saint Lucia, Saint Vincent and the Grenadines, Samoa, San Marino, Sao Tome and Principe, Seychelles, Solomon Islands, Somalia, South America, South Sudan, Syria, Timor, Togo, Trinidad and Tobago, Turks and Caicos Islands, Vanuatu, Vatican, World.
 
-Another variable, is island, was added to account for the fact that islands have it easier to close borders and protect themselves from the virus.
+Finally, another variable, is island, was added to account for the fact that islands have it easier to close borders and protect themselves from the virus.
 
 The selected variables thus are 
 
@@ -35,34 +35,35 @@ The selected variables thus are
 
 - New cases smoothed per million: Continuous variable representing the average of new cases over 7 days per million inhabitants of the country.
 
-- People fully vaccinated per hundred: Continuous variable representing the number of people vaccinated in that country per hundred inhabitants of the country, so the % of people fully vaccinated.
+- People fully vaccinated per hundred: Continuous variable representing the number of people with all the require doses of a given vaccine in that country per hundred inhabitants of the country, so the % of people fully vaccinated.
 
 - Continent: Categorical variable representing the continent with six factors: Africa,
 Asia, Europe, North America, Oceania and South America.
 
-- Stringency Index: Continuous variable representing a measure of the level of restrictions a country has endured
+- Stringency Index: Continuous variable representing a measure of the level of restrictions a country had endured at that time. It is composite measure based on 9 response indicators including school closures, workplace closures, and travel bans, rescaled to a value from 0 to 100 (100 = strictest response)
 
-- Population Density: Continuous variable representing the population density of the country
+- Population Density: Continuous variable representing the population density of the country measured in people per square kilometers.
 
 - Aged 65 or older: Continuous variable representing the percentage of the population aged 65 or older.
 
-- Cardiovascular Death Rate: Continuous variable representing the cardiovascular death rate.
+- Cardiovascular Death Rate: Continuous variable representing the death rate from cardiovascular disease in 2017 (annual number of deaths per 100,000 people).
 
-- Diabetes Prevalence: Continuous variable representing the diabetes prevalence.
+- Diabetes Prevalence: Continuous variable representing the diabetes prevalence (% of population aged 20 to 79) in 2017.
 
-- Life Expectancy: Continuous variable representing the life expectancy of the country.
+- Life Expectancy: Continuous variable representing the life expectancy of the country at birth in 2019.
 
-- Human Development Index: Continuous variable representing the Human Development Index (HDI) of the country.
+- Human Development Index: Continuous variable representing the Human Development Index (HDI) of the country which is a composite index measuring average achievement in three basic dimensions of human development—a long and healthy life, knowledge and a decent standard of living. Values for 2019.
 
 - Is island: Categorical variable of two levels accounting for the fact of whether the country is an island or not.
 
-- Month: Categorical variable of 10 levels accounting for the month of the year. Data were taken from July 1st 2020, meaning that May and June are not present.
+- Month: Categorical variable of 10 levels accounting for the month of the year. Data were selected from July 1st 2020, meaning that May and June are not present.
 
 
-It is important to note that some of these variables contained NA's. The way this has been fixed is by noting that NA in vaccines and cases appeared mostly when there were 0, so this cases were set to 0. Also, some NAs on population density, HDI and other country variables can be replaced just by a quick search on Google. Finally, the rest of the NAs were imputed using Random Forest imputer of the R package Mice.
+It is important to note that some of these variables contained missing values. The way this has been fixed is by noting that NA in vaccines and cases appeared mostly when those were 0: very beginning of the pandemic in the world so many countries didn't have any and, in the case of vaccines, not until their development. This two cases were set to 0. Also, missing values on population density, HDI and other country features can be replaced just by a quick search on Google. Finally, the rest of the missing values were imputed using Random Forest imputer of the R package Mice that fits a model of a certain feature containing missing values in terms of the other features in the dataset in order to give an estimation of the missing value.
 
+## Variable distribution
 
-And we can see their distribution in the following plots:
+The distribution of the aforementioned variables can be seen in the following plots:
 
 
 ```{r}
@@ -96,7 +97,7 @@ testData$month=as.factor(testData$month)
 ```
 
 <p align="center">
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=2.5, fig.width=2.5}
 trainData %>% ggplot(aes_string(x = "new_deaths_smoothed_per_million")) +  geom_density(alpha = 0.2)
 ```
 </p>
@@ -127,9 +128,11 @@ plot(trainData$month, main="Month")
 ```
 </p>
 
-April has less values because these data were downloaded on mid April 2021.
+In terms of the pandemic evolution, it can be seen that cases, deaths and vaccines have a very high density of zeroes, which makes sense since there are data from the beginning of the pandemic with zero values as well as many countries on which the pandemic arrived later in time, same as the vaccines, that didn't appear until the end of 2020. Also, regarding the stringency index, it can be seen that most of the countries have endured a moderate to high level of restrictions throughout all the pandemic.
 
+In population density, there are clearly countries with very high population density (Macao, which is indeed like very big city and others). In terms of the population's characteristics, it can be seen that most of the countries have a low to moderate percentage of old people and the same for cardiovascular and diabetes pathologies. Life expectancy and HDI plots show that their modes are on high values, meaning that the dataset has more information on rich, developed countries that on poorer, less developed countries.
 
+In terms of spatio temporal distribution, we can see that the most instances for a given continent are on African countries followed by Asian and European, this makes sense since these continents have a similar number of countries and if no special pattern on the data collection through time happened, they should follow the same trend, as happens with the variable is island (and Oceania), since there are not that many islands. Finally, the distribution through time is more or less uniform except for April. This is because data were downloaded from the web on the 14th of April and selected from July 2021, so April only has half of the month while the other have a full month period each.
 
 ## Statistical Models
 
@@ -213,7 +216,7 @@ It is difficult to determine a simple mathematical relation between the variable
 
 - Stringency Index: There appears to be a positive correlations. This could be explained by thinking that the toughest measures were applied in the most difficult times.
 
-- Population density: There appears to be a negative correlation. There are some countries with very high population density and few deaths (which might be islands as well). Intuitively, the more population density, the higher the transmission and the number of deaths. Although probably country total population density might not be the best real measure of population density and interpersonal contact of the cities.
+- Population density: There appears to be a negative correlation. There are some countries with very high population density and few deaths (which might be islands as well). Intuitively, the more population density, the higher the transmission and the number of deaths. Although probably country total population density might not be the best real measure of population density and interpersonal contact of the cities. In fact, some countries like Macao (population density 20000 inhabitants/$\text{km}^2$) are similar to big cities in bigger countries and would reflect better the impact of interpersonal contact in contagion. It can be seen how Macao has indeed low deaths, which points to a necessity of change in the concept of population density. It will later be checked whether this variable is really significant.
 
 - Aged 65 or older: It appears that the higher the percentage of old people, the higher the number of deaths, which seems intuitive. There are some data with the highest percentage of old people and few deaths, but this might be an outlier that follows another trend (an island for example).
 
@@ -230,7 +233,7 @@ It is difficult to determine a simple mathematical relation between the variable
 - Month: Summer months present less deaths maybe because the virus gets milder but also since data are only for one summer and one should keep in mind that that was just after months of the hardest restrictions and lockdown.
 
 
-Since finding transformations is a difficult task, one can 
+Since finding transformations is a difficult task, one can look at the linear correlation (although losing possible non linear important terms). The following plot shows the correlation of the different predictors with the response variable (deaths) with categorical features taking as dummy variables (one hot encoding).
 
 
 ```{r}
@@ -276,7 +279,7 @@ ggplot(corr,aes(x = row.names(corr), y = corr_label)) +
 ```
 </p>
 
-We can see that the linear correlation is higher for new cases and aged 65 or older as well as HDI, as expected from the previous plots.
+We can see that the linear correlation is higher for new cases and aged 65 or older as well as HDI, as could be seen also from the previous plots.
 
 ### Linear regression models
 
@@ -302,17 +305,17 @@ test_results$lm <- predict(simple_model, testData)
 |:-------------:|:------------:|:-----------:|:-----------:|:-------------:|:-----:|
 |1.06 $\pm$ 0.05|(1.385 $\pm$ 0.006)$10^{-2}$|0.085 $\pm$ 0.002|-2.07 $\pm$ 0.09|1.94|0.62|
 
-This means that increasing one unit the number of cases per million translates into 0.01385 more deaths. More cases mean more deaths, which seems intuitive. This coefficient also yields very useful information regarding COVID-19 mortality. For every COVID case, around 1.4% of people die. It can also be seen that a 1% increase in the percentage of population older than 65 leads to an increase of 0.085 average deaths per million, which seems intuitive but also a very small increase in deaths. Finally, the HDI coefficient shows that more developed countries tackle better the fight against COVID with less deaths, although HDI is a variable between 0 and 1, so the real differences between countries are small. With only these 3 variables the model is able to explain more than half of the variability of the test set, with an $R^2=0.62$.
+This means that increasing one unit the number of cases per million translates into 0.01385 more deaths per million. More cases mean more deaths, which seems intuitive. This coefficient also yields very useful information regarding COVID-19 mortality. For every COVID case, around 1.4% of people die. It can also be seen that a 1% increase in the percentage of population older than 65 leads to an increase of 0.085 deaths per million, which seems intuitive since old population may be more vulnerable. Finally, the HDI coefficient shows that more developed countries tackle better the fight against COVID with less deaths, although HDI is a variable between 0 and 1, so the real differences between countries are small. With only these 3 variables the model is able to explain more than half of the variability of the test set, with an $R^2=0.62$.
 
-We can try to see the difference by fitting a linear model with all the variables. This full model has an $R^2=0.65$, which is not a very big improvement considering we went from 3 variables to 26 (including dummies). This means that if we want to improve the model further, we need to include some kind of non-linear term. Since identifying pure transformation for the variables seems difficult, we would try first with one to one interactions between variables and leave the identification of non-linear trends to Machine Learning models.
+We can try to see the difference by fitting a linear model with all the variables. This full model has an $R^2=0.65$, which is not a very big improvement considering we went from 3 variables to 26 (including dummies). This means that if we want to improve the model further, we need to include some kind of non-linear term. Since identifying a pure transformation for the variables seems difficult, we would try first with one to one interactions between variables and leave the identification of non-linear trends to Machine Learning models.
 
 A model with interactions was done but excluding interaction terms of month and vaccinations since when merging them with the other variables there were levels with zero variance. By doing this model with interactions one gets an $R^2=0.77$ which is a considerable improvement but at the cost of increasing the variable size up to 210 variables (including dummies). In order to try to find the most relevant predictors, several techniques will be used:
 
-- Stepwise regression: with backwards, forward and stepwise methods that try to find the best subset of variables.
+- Stepwise regression: with Backwards, Forward and Stepwise methods that try to find the best subset of variables.
 
 - Penalization Algorithms: Like Lasso, Ridge Regression or Elastic Net which will shrink the coefficients related with the "useless" variables to 0 trying to find the most relevant ones.
 
-- Dimension reduction techniques: like Principal Component Regression or Partial Least squares 
+- Dimension reduction techniques: like Principal Component Regression or Partial Least squares that attempt to simplify the predictors by using instead principal components (PCR) or giving more weight to the most correlated variables (interactions count as well as new predictors) with the response (PLS).
 
 
 ```{r}
@@ -349,6 +352,9 @@ test_results$full_lm <- predict(full_model, testData)
 ```
 
 ### Stepwise Regression
+
+Let's first look at the stepwise algorithms. The following plots show the decrease of the Root Mean Squared Error (the lower, the better) with the introduction of more variables, estimated via cross validation. It can be seen that there is a point where the improvement becomes very slow and thus the remaining variables, not so relevant. Both tend to the same performance when the number of features is high (30 in advance) but the interesting idea is to keep the least variables as possible. Therefore, a reasonable number for explainability would be to keep around 15-16 variables of the stepwise model in particular.
+
 ```{r}
 # backwards regression
 # back_tune <- train(as.formula(final_formula), data = trainData,
@@ -358,6 +364,7 @@ test_results$full_lm <- predict(full_model, testData)
 #                    trControl = ctrl)
 # save(back_tune, file="C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/back_tune.RData")
 load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/back_tune.RData")
+#back_tune$bestTune$nvmax
 #back_tune
 # which variables are selected?
 #coef(back_tune$finalModel, back_tune$bestTune$nvmax)
@@ -378,7 +385,7 @@ test_results$bw <- predict(back_tune, testData)
 # save(for_tune, file="C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/for_tune.RData")
 load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/for_tune.RData")
 #for_tune
-
+#for_tune$bestTune$nvmax
 # which variables are selected?
 #coef(for_tune$finalModel, for_tune$bestTune$nvmax)
 test_results$forward <- predict(for_tune, testData)
@@ -420,15 +427,17 @@ plot(step_tune, main="Stepwise")
 
 ### Penalized Regression
 
+Penalized regression tries to find the optimal value of the penalization parameters (one for ridge and lasso, two for elastic net) that penalize the size of the coefficients, thus shrinking to zero the unwanted ones. The following plot shows an example of how this works with the lasso, when it can be seen that the higher the penalization parameter, the more coefficients go to 0. The idea is to find the best combination between explainability and "effective" number of variables.
+
 ```{r}
 # For penalized models use glmnet since it finds the optimal penalization parameter better than caret (in caret you need to specify the grid)
 
 # Lasso (alpha=0)
-# x = model.matrix(as.formula(final_formula), trainData)[,-1]
-# y = trainData$new_deaths_smoothed_per_million
+x = model.matrix(as.formula(final_formula), trainData)[,-1]
+y = trainData$new_deaths_smoothed_per_million
 # #  Find the best lambda using cross-validation
-# set.seed(123)
-# cv <- cv.glmnet(x, y, alpha = 0)
+ set.seed(123)
+cv <- cv.glmnet(x, y, alpha = 0)
 # # Display the best lambda value
 # #cv$lambda.min
 # # Fit the final model on the training data
@@ -441,14 +450,18 @@ load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestr
 x.test <- model.matrix(as.formula(final_formula), testData)[,-1]
 predictions <- lasso %>% predict(x.test) %>% as.vector()
 test_results$lasso=predictions
-#plot(cv$glmnet.fit, xvar="lambda")
+```
+
+<p align="center">
+```{r, fig.height=3}
+plot(cv$glmnet.fit, xvar="lambda")
 # Model performance metrics
 # data.frame(
 #   RMSE = RMSE(predictions, testData$new_deaths_smoothed_per_million),
 #   Rsquare = R2(predictions, testData$new_deaths_smoothed_per_million)
 # )
 ```
-
+</p>
 
 ```{r}
 # Ridge regression (alpha = 1 )
@@ -507,6 +520,8 @@ test_results$elastic_net=predictions
 
 ### Dimension Reduction Techniques
 
+As said, PCR and PLS try to find the best subset of components. The following plot shows the number RMSE evolution with number of components. The more components, the more it improves. However, clearly PLS performs way better than PCR since only a few components of it work better than any PCR model.
+
 ```{r}
 # Now with Caret:
 # c7=makePSOCKcluster(7)
@@ -562,7 +577,12 @@ plot(pls_tune, main="PLS")
 
 ### Final results
 
-The final results from all the models are summarized in the following table: Root Mean Squared Error on the testing set as well as $R^2$ as a way to compare the variability explained by each of the models. Finally, prediction intervals are computed in a non-parametric way such that they are robust against outliers in order to check which percentage of the test sample lies inside (thus being covered inside the model prediction) or outside these intervals.
+The final results from all the models are summarized in the following table: Root Mean Squared Error on the testing set as well as $R^2$ as a way to compare the variability explained by each of the models. Finally, prediction intervals are computed in a non-parametric way such that they are robust against outliers in order to check which percentage of the test sample lies inside (thus being covered inside the model prediction) or outside these intervals. This interval is calculated as
+
+$$
+\overline{y} \pm 2.4*\operatorname{mad}(\operatorname{noise})
+$$
+where $\overline{y}$ is the prediction of the model and mad(noise) is the mean absolute deviation of the noise, a measure of the error (standard deviation) in part of the testing set.
 
 | Model | RMSE (test) | $R^2$ (test)| %test outside interval |
 |:-----:|:----:|:--:|:------------------:|
@@ -577,11 +597,11 @@ The final results from all the models are summarized in the following table: Roo
 | Elastic Net |1.53 |0.77 | 20.7%  |
 | PCR |1.81 |0.67 | 20.5%|
 | PLS |1.62 |0.74 | 22.9% |
-| ENSEMBLE (Elastic Net + PLS) |1.56 |0.75 |22.3% | 
+| Ensemble (Elastic Net + PLS) |1.56 |0.75 |22.3% | 
 
-We can recall that only with the new cases we were able to obtain around an $R^2=0.58$ and the full model with no interactions doesn't go much further beyond, only $R^2=0.65$. Clearly, the key to solving this problem is on interaction effects and non-linearities. Adding interaction effects improves greatly the model, as it can be seen in the table. Several algorithms have been used to filter the most important variables. Some of them, like Partial Least Squares, are able to maintain a similar performance to the full model with more than 200 variables with way less features.
+We can recall that only with the new cases we were able to obtain around an $R^2=0.58$ and the full model with no interactions doesn't go much further beyond, only $R^2=0.65$. Clearly, the key to solving this problem is on interaction effects and non-linearities. Adding interaction effects improves greatly the model, as it can be seen in the table. Several algorithms have been used to filter the most important variables. Some of them, like Partial Least Squares, are able to maintain a similar performance to the full model with more than 200 variables with way less features. Also, an ensemble has been built with two of the best models: Elastic Net and PLS in order to generalize better to future unknown data.
 
-On the other hand, in order to get explainability I would choose the stepwise model, since it only has 16 variables, which is actually less than the total number of predictors (26, including dummies) and it still has an $R^2=0.68$ while having the same performance on the percentage of the test sample out of the prediction interval, around a 20%. Its coefficients are the following:
+On the other hand, in order to get explainability, instead of looking at the more than 200 variables that the full linear model with interactions chose, we can look at the ones that the stepwise model considered the most important, since it only has 16 variables, which is actually less than the total number of predictors (26, including dummies) and it still has an $R^2=0.68$ while having the same performance on the percentage of the test sample out of the prediction interval, around a 20%. Its coefficients are the following:
 
 | $\beta_0$| $\beta_{Cases}$ |$\beta_{island}$  | $\beta_{Asia:Cases}$| $\beta_{Oceania:Month2}$ | $\beta_{Oceania:Month12}$ | $\beta_{cases:65older}$| $\beta_{cases:diabetes}$ | $\beta_{cases:l.exp}$|
 |:-------------:|:-------------:|:------------:|:-----------:|:-----------:|:-------------:|:-----------:|:-----------:|:-----------:|
@@ -592,9 +612,11 @@ On the other hand, in order to get explainability I would choose the stepwise mo
 :-------------:|:------------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|
 |0.15|-0.02|0.06|0.1|0.6|0.1|-0.1|0.05|
 
-This means that the explanation of the problem is:
+This means that the explanation (excluding sophisticated non linear terms) of the problem is mainly based on the new cases and its interaction with the other variables. In particular, per unit increment it increases 13.6 on deaths but several corrections are then applied. The positive corrections are the interactions of cases with the percentage of old people, diabetes prevalence, February, July and December. The deaths are diminished, on the other hand, with cases interaction with Asia (each case in Asia is prone to 0.5 less deaths than in other parts of the world); with life expectancy it suffers a severe negative correction of -11.9 deaths (for a fixed number of cases) for unit of life expectancy. This means that each year of difference between life expectancy matters a lot not because the population is older (that in fact increases the chances of death from the interaction term between cases and % of 65 or older) but because it could be associated with richer countries with better healthcare systems, for example. Finally, each case in March also causes 0.02 less deaths than in other months.
 
+On the other hand, clearly the incorporation of the new feature "is island" was very successful, being in this selection of the most important variables. It is shown that islands have in general 0.2 deaths per million less, which could be attributed to their ease in isolating themselves and reducing transmission with the rest of the world.
 
+Finally, it can be seen that other interactions like Oceania in February or December, stringency index with old people and diabetes as well as the fact that the effect of diabetes in March is amplified and on old people, reduced.
 
 ```{r, eval=FALSE}
 
@@ -633,15 +655,14 @@ for(names in colnames(test_results)){
       predictions = predictions %>% mutate(out=factor(if_else(real<lwr | real>upr,1,0)))
       
       # how many real observations are out of the intervals?
-      #print(paste(c("percentage of real observations out of the interval for", names)))
-      #print(mean(predictions$out==1))
+      print(paste(c("percentage of real observations out of the interval for", names)))
+      print(mean(predictions$out==1))
+      # prediction of spanish value 0.35--> interval?
+      print(0.35-2.4*mad(noise))
+      print(0.35+2.4*mad(noise))
 
    }
 }
-
-
-
-
 
 
 
@@ -649,15 +670,12 @@ for(names in colnames(test_results)){
 
 ## Discussion and Conclusions
 
-Difficult to obtain exact variable transformations, maybe also because each country has its own optimal transformation.
 
+In conclusion, the methodology used has been able to obtain models that achieve an explanation of 77% of the variance of the COVID-19 7-day average deaths per million as well as obtaining the main factors that explain it: the number of cases and the fact that the country is an island, together with corrections of the number of old people, diabetes prevalence, restrictive measures and the month of the year.
 
+On the other hand, there is still some part of the problem that are unexplained by the model since it was difficult to obtain exact variable transformations that could represent more complex non linear effects. An analysis with Machine Learning tools would be needed in order to find these underlying patterns.
 
-
-
-
-
-Finally, we can use this knowledge not only to explain the main features that drive the pandemic's death but also to make predictions. The data used stop at mid April 2021, let's try to predict the situation this summer (July), obtaining a prediction interval for Spain's deaths. Since most of the models have similar performance, I will use the full model because it includes also vaccine information. See the results plugging in Spain's characteristics, which are 50% of vaccinated people by July (following government estimation); 1000 cases on average (20 per million inhabitants of Spain) knowing that there are now around 10000 and last July it descended to around 1000 cases; Stringency Index with low measures, 30. HDI of 0.904 ; population density 93.105; 19.436% of people older than 65; cardiovascular death rate of 99.403; diabetes prevalence of 7.17; life expectancy of 83.56 years and on month 7 (July), in Europe and not an island yielding a negative value of deaths (which is impossible), but meaning that there will be very very low number of deaths (we will see).
+Finally, we can use this knowledge not only to explain the main features that drove the pandemic's death but also to make predictions. The data used stop at mid April 2021, so it could be used, for example, to predict the situation this summer (July). Since most of the models have similar performance, I will use the full model because it includes also vaccine information. See the results plugging in Spain's characteristics, which are 50% of vaccinated people by July (following government estimation); 1000 cases on average (20 per million inhabitants of Spain) knowing that there are now around 10000 and last July it descended to around 1000 cases; Stringency Index with low measures, 30. HDI of 0.904 ; population density 93.105; 19.436% of people older than 65; cardiovascular death rate of 99.403; diabetes prevalence of 7.17; life expectancy of 83.56 years and on month 7 (July), in Europe and not an island. Furthermore, the same confidence interval that were estimated for the out of sample testing set can be used (using the same noise value obtained for the full model) yielding a low number of deaths of [-0.7, 1.4], compatible with 0 deaths (we shall see this prediction in summer).
 
 ```{r, eval=FALSE}
 spain=data.frame(NA)
@@ -675,5 +693,5 @@ spain$month="7"
 spain$is_island="no"
 spain=spain[,-1]
 
-predict(pls_tune, spain)
+predict(full_model, spain)
 ```
