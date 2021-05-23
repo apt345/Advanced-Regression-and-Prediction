@@ -1,0 +1,264 @@
+---
+title: "Machine Learning Covid"
+author: "Arturo Prieto Tirado"
+date: "3/5/2021"
+output: html_document
+---
+
+
+<style>
+body {
+text-align: justify;
+font-size: 10pt}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+library(caret)
+library(doParallel)
+library(tidyverse)
+library(MASS)
+library(VGAM)
+library(e1071) 
+library(gridExtra)
+library(tictoc)
+library(mice)
+library(glmnet)
+# Analysis
+
+
+trainData = read.csv("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/train_def_def.csv")
+trainData=trainData[,-1]
+
+testData = read.csv("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/test_def_def.csv")
+testData=testData[,-1]
+
+#put categorical variables as factor
+trainData$is_island=as.factor(trainData$is_island)
+trainData$continent=as.factor(trainData$continent)
+trainData$month=as.factor(trainData$month)
+
+testData$is_island=as.factor(testData$is_island)
+testData$continent=as.factor(testData$continent)
+testData$month=as.factor(testData$month)
+
+
+
+```
+
+
+```{r}
+ctrl <- trainControl(method = "repeatedcv", 
+                     number = 5, repeats = 4,
+                     savePredictions = "final",
+                     allowParallel = T,
+                     verboseIter = T)
+
+```
+
+
+
+```{r}
+model_full <- new_deaths_smoothed_per_million ~ .
+#remove response and vaccinations
+varnames=colnames(trainData[,-c(3)])
+
+# Formula allowing only interaction between two variables 
+double_formula = c()
+for (i in 1:(length(varnames))){
+  for (j in 1:(length(varnames))){
+    if(i<j & !(j %in% c(3,11))& !(i %in% c(3,11))){
+       #print(j)
+      double_formula = c(double_formula, paste(c(varnames[i], varnames[j]), collapse = ":"))  
+    }
+  }
+}
+double_interaction_formula = paste(c( varnames, paste(double_formula, collapse = "+")), collapse = "+")
+
+interaction_model=paste(c("new_deaths_smoothed_per_million~"), double_interaction_formula)
+```
+
+```{r}
+#cl <- makeCluster(detectCores()-1)
+#registerDoParallel(cl)
+
+#NaiveFit = train(new_deaths_smoothed_per_million ~ stringency_index+ -stringency_index,"lm", data=trainData, metric = "RMSE", preProcess = c("center", "scale"), trControl = ctrl)
+
+#lmFit = train(as.formula(interaction_model),"lm", data=trainData, metric = "RMSE", preProcess = c("center", "scale"), trControl = ctrl)
+
+#elasticnetFit = train(as.formula(interaction_model),"glmnet", data=trainData, metric = "RMSE", tuneGrid=expand.grid(alpha = seq(0, .2, 0.01), lambda = seq(0, .1, 0.01)),preProcess = c("center", "scale"), trControl = ctrl)
+
+#plsFit = train(as.formula(interaction_model),"pls", data=trainData, metric = "RMSE", tuneGrid = expand.grid(ncomp = 1:4),preProcess = c("center", "scale"), trControl = ctrl)
+
+#optimo es kmax=200
+#knnFit = train(model_full,"kknn", data=trainData, metric = "RMSE", tuneGrid = expand.grid(kmax = c(50,100,150,200), distance=2, kernel="optimal"),preProcess = c("center", "scale"), trControl = ctrl)
+
+#optimo es mtry=12
+
+#rfFit = train(model_full,"rf", data=trainData, metric = "RMSE", ntree = 250,
+               # tuneGrid = expand.grid(mtry = c(4,6,8,12)),preProcess = c("center", "scale"), trControl = ctrl)
+
+#svmFit = train(model_full,"svmRadial", data=trainData, metric = "RMSE", tuneGrid = expand.grid(C = seq(0.1, 1.5, 0.2), sigma = seq(0.01, 0.1, 0.03)), preProcess = c("center", "scale"), trControl = ctrl)
+
+#nnetFit = train(model_full,"nnet", data=trainData, metric = "RMSE", tuneGrid = expand.grid(size=30, decay=0.03), preProcess = c("center", "scale"), maxit=10000, trControl = ctrl)
+
+#gbmFit = train(model_full,"gbm", data=trainData, metric = "RMSE", preProcess = c("center", "scale"), trControl = ctrl2)
+
+#extremeboostFit = train(model_full, "xgbTree", data=trainData, metric="RMSE", preProcess = c("center", "scale"), tuneGrid= expand.grid(
+#   nrounds = c(500,1000),
+#   eta = c(0.01, 0.001), 
+#   max_depth = c(2, 4, 6),
+#   gamma = 1,
+#   colsample_bytree = c(0.2, 0.4),
+#   min_child_weight = c(1,5),
+#   subsample = 1
+# ), trControl = ctrl)
+
+#stopCluster(cl)
+```
+
+
+```{r}
+#save(knnFit, file="C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/knn_fit.RData")
+#save(rfFit, file="C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/rf_fit.RData")
+#save(svmFit, file="C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/svm_fit.RData")
+#save(nnetFit, file="C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/nnet_fit.RData")
+#save(extremeboostFit, file="C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/XGBoost_fit.RData")
+#save(gbmFit, file="C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/gmb_fit.RData")
+#extremeboostFit
+```
+### Results
+
+```{r}
+load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/knn_fit.RData")
+load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/rf_fit.RData")
+load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/gmb_fit.RData")
+load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/svm_fit.RData")
+load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/nnet_fit.RData")
+load("C:/Users/arpri/OneDrive/Escritorio/libros/master/4- Cuarto Semicuatrimestre/Regresión Avanzada y Predicción/XGBoost_fit.RData")
+```
+
+<br>
+
+Note MAE and RMSE are the same: predictions are one-month ahead
+
+Note R2 is NA for the same reason
+
+```{r}
+plot(varImp(rfFit))
+#plot(varImp(extremeboostFit))
+#plot(varImp(svmFit))
+#plot(varImp(knnFit))
+```
+
+
+```{r}
+test_results <- data.frame(new_deaths_smoothed_per_million=testData$new_deaths_smoothed_per_million)
+test_results$knn <- predict(knnFit, testData)
+test_results$rf=predict(rfFit, testData)
+test_results$gbm=predict(gbmFit, testData)
+test_results$svm=predict(svmFit, testData)
+test_results$nnet=predict(nnetFit, testData)
+test_results$XGBoost=predict(extremeboostFit, testData)
+postResample(pred = test_results$knn,  obs = test_results$new_deaths_smoothed_per_million)
+postResample(pred = test_results$rf,  obs = test_results$new_deaths_smoothed_per_million)
+postResample(pred = test_results$gbm,  obs = test_results$new_deaths_smoothed_per_million)
+postResample(pred = test_results$svm,  obs = test_results$new_deaths_smoothed_per_million)
+postResample(pred = test_results$nnet,  obs = test_results$new_deaths_smoothed_per_million)
+postResample(pred = test_results$XGBoost,  obs = test_results$new_deaths_smoothed_per_million)
+```
+
+
+
+```{r}
+
+for(names in colnames(test_results)){
+   if(names!="new_deaths_smoothed_per_million"){
+      # Final predictions:
+      yhat = lapply(test_results[names],as.numeric)[[names]]
+      #head(yhat) # show the prediction for 6 home prices
+      #hist(yhat, col="lightblue")
+      # take care: asymmetric distribution
+      
+      y = test_results$new_deaths_smoothed_per_million
+      error = y-yhat
+      #hist(error, col="lightblue")
+      # But the error is more symmetric
+      
+      # But we cannot use the information in the testing set to obtain the confidence intervals in the testing set
+      # Hence: split the testing set in two parts, one to measure the size of the noise, and the other one to compute the CIs from that size
+      
+      # Let's use the first 100 homes in testing to compute the noise size
+      noise = error[1:300]
+      sd.noise = sd(noise)
+      
+      # Non-parametric way, even more robust against outliers
+      lwr = yhat[301:length(yhat)] - 2.4*mad(noise) 
+      upr = yhat[301:length(yhat)] + 2.4*mad(noise)
+      # for normal data, sd=1.48*mad
+      
+      predictions = data.frame(real=y[301:length(y)], fit=yhat[301:length(yhat)], lwr=lwr, upr=upr)
+      predictions = predictions %>% mutate(out=factor(if_else(real<lwr | real>upr,1,0)))
+      
+      # how many real observations are out of the intervals?
+      print(paste(c("percentage of real observations out of the interval for", names)))
+      print(mean(predictions$out==1))
+      # prediction of spanish value 0.35--> interval?
+      #print(0.35-2.4*mad(noise))
+      #print(0.35+2.4*mad(noise))
+
+   }
+}
+
+
+
+```
+
+
+
+
+
+
+
+```{r}
+spain=data.frame(NA)
+spain$people_fully_vaccinated_per_hundred=50
+spain$new_cases_smoothed_per_million=20.0
+spain$stringency_index=30.0
+spain$human_development_index=0.904
+spain$population_density=93.105
+spain$aged_65_older=19.436
+spain$cardiovasc_death_rate=99.403
+spain$diabetes_prevalence=7.17
+spain$life_expectancy=83.56
+spain$continent="Europe"
+spain$month="7"
+spain$is_island="no"
+spain=spain[,-1]
+
+predict(svmFit, spain)
+predict(rfFit, spain)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -15,9 +15,9 @@
 
 | Machine Learning Model | RMSE (test) | $R^2$ (test)| %test outside interval |
 |:-----:|:----:|:--:|:------------------:|
-| Random Forest |1.94 |0.62 | 82.8% |
-| KNN |1.87 |0.65 | 80.6% |
-| GBM |1.50 |0.77 |21.3% |
-| XGB Tree | 1.75 | 0.69 | 38.8% |
-| Radial SVM | 1.75 | 0.69 | 38.8% |
-| Neural Network | 1.75 | 0.69 | 38.8% |
+| Random Forest |0.50 |0.97 | 20.0% |
+| KNN |0.51 |0.97 | 23.3% |
+| GBM |1.28 |0.84 | 13.4% |
+| XGB Tree | 0.8 | 0.94 | 18.1% |
+| Radial SVM | 1.02 | 0.90 | 10.9% |
+| Neural Network | 3.13 | 0.35 | 27.3% |
