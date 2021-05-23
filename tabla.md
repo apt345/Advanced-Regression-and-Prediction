@@ -1,5 +1,5 @@
 | Statistical Model | RMSE (test) | $R^2$ (test)| %test outside interval |
-|:-----:|:----:|:--:|:------------------:|
+|:--------------------------:|:-----------------:|:-----------:|:------------------:|
 | Simple L.R.|1.94 |0.62 | 82.8% |
 | Full L. R. (no interactions)|1.87 |0.65 | 80.6% |
 | Full L. R. (with interactions)|1.50 |0.77 |21.3% |
@@ -14,7 +14,7 @@
 | Ensemble (Elastic Net + PLS) |1.56 |0.75 |22.3% | 
 
 | Machine Learning Model | RMSE (test) | $R^2$ (test)| %test outside interval |
-|:-----:|:----:|:--:|:------------------:|
+|:---------------------:|:------:|:-------:|:------------------:|
 | Random Forest |0.50 |0.97 | 20.0% |
 | KNN |0.51 |0.97 | 23.3% |
 | GBM |1.28 |0.84 | 13.4% |
