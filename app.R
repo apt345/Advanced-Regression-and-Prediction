@@ -11,7 +11,7 @@ library(tidyverse)
 library(magrittr)
 library(shinythemes)
 library(shinyjs)
-
+library(markdown)
 
 trainData = read.csv(url("https://raw.githubusercontent.com/apt345/Advanced-Regression-and-Prediction/main/train_def_def.csv"))
 trainData=trainData[,-1]
@@ -83,17 +83,16 @@ Asia, Europe, North America, Oceania and South America.</li>
 )
 
 correlationpanel = tabPanel("Variable relation to deaths",
-                     p("The following plot shows correlations"),
-                     plotOutput("correlations")
+                     p("Since it has been difficult to find non linear relationships on the predictors describing deaths, the following plot shows linear correlations. Machine Learning models will be used to identify these non linear trends. It can be seen that the highest linear relationship is that with new cases, percentage of population aged 65 or older and Human Development Index.")
 )
 
 
 plotlyPanel = tabPanel("Model Results",
-                       markdown::includeMarkdown(url("tabla")))
+                       withMathJax(includeMarkdown(url("https://raw.githubusercontent.com/apt345/Advanced-Regression-and-Prediction/main/tabla.md"))))
 
-conclusionsPanel=tabPanel("Discussion and Conclusions")
+conclusionsPanel=tabPanel("Discussion and Conclusions", h1("Discussion"), h1("Predicting the future"), h1("Conclusions"))
 # Define UI for application that draws a histogram
-ui = navbarPage("Statistical and Machine Learning Models for COVID-19 deaths",
+ui = navbarPage("Statistical and Machine Learning Models for COVID-19 deaths by Arturo Prieto Tirado",
                     introduction,
                       dataPanel,
                         correlationpanel,
@@ -106,6 +105,7 @@ ui = navbarPage("Statistical and Machine Learning Models for COVID-19 deaths",
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+    
     #function to obtain the given variable in dataframe form
     vaccines_date = reactive({
         a=as.data.frame(trainData %>% pull(input$selected_date))
