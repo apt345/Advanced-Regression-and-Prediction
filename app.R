@@ -83,14 +83,19 @@ Asia, Europe, North America, Oceania and South America.</li>
 )
 
 correlationpanel = tabPanel("Variable relation to deaths",
-                     p("Since it has been difficult to find non linear relationships on the predictors describing deaths, the following plot shows linear correlations. Machine Learning models will be used to identify these non linear trends. It can be seen that the highest linear relationship is that with new cases, percentage of population aged 65 or older and Human Development Index.")
+                     p("Since it has been difficult to find non linear relationships on the predictors describing deaths, the following plot shows linear correlations. Machine Learning models will be used to identify these non linear trends. It can be seen that the highest linear relationship is that with new cases, percentage of population aged 65 or older and Human Development Index."),
+                     uiOutput("img")
 )
 
 
 plotlyPanel = tabPanel("Model Results",
                        withMathJax(includeMarkdown(url("https://raw.githubusercontent.com/apt345/Advanced-Regression-and-Prediction/main/tabla.md"))))
 
-conclusionsPanel=tabPanel("Discussion and Conclusions", h1("Discussion"), h1("Predicting the future"), h1("Conclusions"))
+conclusionsPanel=tabPanel("Discussion and Conclusions", h1("Discussion"),
+                          p("variable importance. Prediccion a futuro"),
+                          uiOutput("rfimportance"),
+                          uiOutput("svmimportance"),
+                          h1("Conclusions"))
 # Define UI for application that draws a histogram
 ui = navbarPage("Statistical and Machine Learning Models for COVID-19 deaths by Arturo Prieto Tirado",
                     introduction,
@@ -121,6 +126,21 @@ server <- function(input, output) {
     })
     #plot a
     output$plot=renderPlot(a())
+    
+    ##
+    
+    output$img <- renderUI({
+        tags$img(src = "https://github.com/apt345/Advanced-Regression-and-Prediction/blob/main/correlaciones.PNG?raw=true")
+    })
+    
+    output$rfimportance <- renderUI({
+        tags$img(src = "https://github.com/apt345/Advanced-Regression-and-Prediction/blob/main/rfimportance.PNG?raw=true")
+    })
+    
+    output$svmimportance <- renderUI({
+        tags$img(src = "https://github.com/apt345/Advanced-Regression-and-Prediction/blob/main/svmimportance.PNG?raw=true")
+    })
+    
     #refresh page when moving through sections
     observe({
         shinyjs::show("advanced")
