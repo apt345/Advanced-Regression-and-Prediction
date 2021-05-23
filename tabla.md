@@ -1,6 +1,6 @@
-| Model | RMSE (test) | $R^2$ (test)| %test outside interval |
+| Statistical Model | RMSE (test) | $R^2$ (test)| %test outside interval |
 |:-----:|:----:|:--:|:------------------:|
-|Simple L.R.|1.94 |0.62 | 82.8% |
+| Simple L.R.|1.94 |0.62 | 82.8% |
 | Full L. R. (no interactions)|1.87 |0.65 | 80.6% |
 | Full L. R. (with interactions)|1.50 |0.77 |21.3% |
 | Forward Regression| 1.75 | 0.69 | 38.8% |
@@ -12,3 +12,12 @@
 | PCR |1.81 |0.67 | 20.5%|
 | PLS |1.62 |0.74 | 22.9% |
 | Ensemble (Elastic Net + PLS) |1.56 |0.75 |22.3% | 
+
+| Machine Learning Model | RMSE (test) | $R^2$ (test)| %test outside interval |
+|:-----:|:----:|:--:|:------------------:|
+| Random Forest |1.94 |0.62 | 82.8% |
+| KNN |1.87 |0.65 | 80.6% |
+| GBM |1.50 |0.77 |21.3% |
+| XGB Tree | 1.75 | 0.69 | 38.8% |
+| Radial SVM | 1.75 | 0.69 | 38.8% |
+| Neural Network | 1.75 | 0.69 | 38.8% |
