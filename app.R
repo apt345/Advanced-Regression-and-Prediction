@@ -89,9 +89,11 @@ correlationpanel = tabPanel("Variable relation to deaths",
 
 
 plotlyPanel = tabPanel("Model Results", p(align="justify", "Let's first remember the results obtained with statistical models, summarized in the following table.
-                                          A considerable improvement was made by adding interaction terms, achieving up to 77% r squared."),
+                                          A considerable improvement was made by adding interaction terms, achieving up to 77% R squared."),
                        withMathJax(includeMarkdown(url("https://raw.githubusercontent.com/apt345/Advanced-Regression-and-Prediction/main/tabla.md"))),
-                       p(align="justify", "And now we can see the improvement made with Machine Learning models. Random forest and K-nearest neighbours are able to explain an incredible 97% of the variability of the testing set. The other models like SVM or XGBoost also obtain very good results. The presence of non-linearities and the improvement is obvious compared to statistical models."))
+                       p(align="justify", "And now we can see the improvement made with Machine Learning models. Random forest and K-nearest neighbours are able to explain an incredible 97% of the variability of the testing set. The other models like SVM or XGBoost also obtain very good results. The presence of non-linearities and the improvement is obvious compared to statistical models."),
+                       withMathJax(includeMarkdown(url("https://raw.githubusercontent.com/apt345/Advanced-Regression-and-Prediction/main/tablaML.md")))
+                       )
 
 conclusionsPanel=tabPanel("Discussion and Conclusions",
                           p(align="justify", "In conclusion, the methodology used has been able to obtain statistical models that achieve an explanation of 77% of the variance of the COVID-19 7-day average deaths per million as well as obtaining the main factors that explain it: the number of cases and the fact that the country is an island, together with corrections of the number of old people, diabetes prevalence, restrictive measures and the month of the year.
