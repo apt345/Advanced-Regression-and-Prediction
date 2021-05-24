@@ -91,7 +91,7 @@ correlationpanel = tabPanel("Variable relation to deaths",
 plotlyPanel = tabPanel("Model Results", p(align="justify", "Let's first remember the results obtained with statistical models, summarized in the following table.
                                           A considerable improvement was made by adding interaction terms, achieving up to 77% R squared."),
                        withMathJax(includeMarkdown(url("https://raw.githubusercontent.com/apt345/Advanced-Regression-and-Prediction/main/tabla.md"))),
-                       p(align="justify", "And now we can see the improvement made with Machine Learning models. Random forest and K-nearest neighbours are able to explain an incredible 97% of the variability of the testing set. The other models like SVM or XGBoost also obtain very good results. The presence of non-linearities and the improvement is obvious compared to statistical models."),
+                       p(align="justify", "And now we can see the improvement made with Machine Learning models. Random forest and K-nearest neighbours are able to explain an incredible 97% of the variability of the testing set. An ensemble with these two models was built in order to generalize better to unknown data, also with very good performance. The other models like SVM or XGBoost also obtain very good results. The presence of non-linearities and the improvement is obvious compared to statistical models. Neural Networks had difficult convergence, probably needing more data in order to achieve good performance."),
                        withMathJax(includeMarkdown(url("https://raw.githubusercontent.com/apt345/Advanced-Regression-and-Prediction/main/tablaML.md")))
                        )
 
@@ -101,7 +101,17 @@ conclusionsPanel=tabPanel("Discussion and Conclusions",
 On the other hand, statistical models left some part of the problem unexplained, so Machine Learning tools were used in order to find these underlying patterns, with very good results with over 90% of the variance explained. In the following plots we can see the variable importance of Random Forest and Radial Suppor Vector Machines, were it can be seen that the main drivers are the same as found with statistical models, just that now non-linear trends are included."),
                           uiOutput("rfimportance"),
                           uiOutput("svmimportance"),
-                          p(align="justify","Finally, we can use this knowledge not only to explain the main features that drove the pandemic's death but also to make predictions. The data used stop at mid April 2021, so it could be used, for example, to predict the situation this summer (July). Since most of the models have similar performance, I will use the full model because it includes also vaccine information. See the results plugging in Spain's characteristics, which are 50% of vaccinated people by July (following government estimation); 1000 cases on average (20 per million inhabitants of Spain) knowing that there are now around 10000 and last July it descended to around 1000 cases; Stringency Index with low measures, 30. HDI of 0.904 ; population density 93.105; 19.436% of people older than 65; cardiovascular death rate of 99.403; diabetes prevalence of 7.17; life expectancy of 83.56 years and on month 7 (July), in Europe and not an island. Furthermore, the same confidence interval that were estimated for the out of sample testing set can be used (using the same noise value obtained for the full model) yielding a low number of deaths of [-0.7, 1.4], compatible with 0 deaths (we shall see this prediction in summer)."))
+                          p(align="justify","Finally, we can use this knowledge not only to explain the main features that drove the pandemic's death but also to make predictions.
+                            The data used stop at mid April 2021, so it could be used, for example, to predict the situation this
+                            summer (July). Since most of the models have similar performance, I will use the ensemble because it
+                            had the best performance and it also generalizes better. See the results plugging in Spain's characteristics, which are 50%
+                            of vaccinated people by July (following government estimation); 1000 cases on average (20 per million
+                            inhabitants of Spain) knowing that there are now around 10000 and last July it descended to around
+                            1000 cases; Stringency Index with low measures, 30. HDI of 0.904 ; population density 93.105; 19.436%
+                            of people older than 65; cardiovascular death rate of 99.403; diabetes prevalence of 7.17; life
+                            expectancy of 83.56 years and on month 7 (July), in Europe and not an island. Furthermore, the same robust
+                            confidence interval that was estimated for the out of sample testing set can be used yielding a low number of 7 day average of deaths in the interval [0.83, 1.16] and thus meaning that the pandemic might hopefully start to come to an end this summer.
+                            "))
 # Define UI for application that draws a histogram
 ui = navbarPage("Statistical and Machine Learning Models for COVID-19 deaths by Arturo Prieto Tirado",
                     introduction,
